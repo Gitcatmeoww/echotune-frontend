@@ -1,0 +1,24 @@
+{
+  // Use Prettier for formatting
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+
+  // Format on save using the default formatter
+  "editor.formatOnSave": true,
+
+  // Enable ESLint to auto-fix as much as possible on save
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
+
+  // Ensure ESLint checks are run on JavaScript and TypeScript files
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ],
+
+  // Disable VS Code's built-in formatter for JavaScript and TypeScript
+  "javascript.format.enable": false,
+  "typescript.format.enable": false
+}
