@@ -1,14 +1,19 @@
 import React from 'react';
 import '../styles/App.css';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import RegistrationForm from './RegistrationForm';
 
-function App() {
+const App = () => {
   return (
-    <div className="App">
-      <header className="App-header">
-        <p>Echotune</p>
-      </header>
-    </div>
+    <Router>
+      <div>
+        {/* Other routes here */}
+        <Routes>
+          <Route path="/register" element={<RegistrationForm />} />
+        </Routes>
+      </div>
+    </Router>
   );
-}
+};
 
 export default App;

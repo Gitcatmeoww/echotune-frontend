@@ -7,7 +7,7 @@
 
   // Enable ESLint to auto-fix as much as possible on save
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": true
+    "source.fixAll.eslint": "explicit"
   },
 
   // Ensure ESLint checks are run on JavaScript and TypeScript files
