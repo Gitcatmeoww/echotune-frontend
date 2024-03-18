@@ -21,7 +21,7 @@ const FeedCard: React.FC<FeedCardProps> = ({ title, onDelete }) => {
         </button>
         {/* Placeholder for image */}
         <div className="bg-gray-300 h-20 mb-4"></div>
-        <div className="font-bold text-xl mb-2">{title}</div>
+        <div className="text-center mb-2">{title}</div>
         {/* Additional card content */}
       </div>
     </div>
