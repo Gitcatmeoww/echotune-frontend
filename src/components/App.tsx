@@ -1,9 +1,9 @@
 import React from 'react';
 import '../styles/App.css';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import LandingPage from './LandingPage';
-import RegistrationForm from './RegistrationForm';
-import TopicPreferencesForm from './TopicPreferencesForm';
+import LandingPage from './Landing/LandingPage';
+import RegistrationForm from './Landing/RegistrationForm';
+import PreferencePage from './Preference/PreferencePage';
 
 const App = () => {
   return (
@@ -13,7 +13,7 @@ const App = () => {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/register" element={<RegistrationForm />} />
-          <Route path="/preference" element={<TopicPreferencesForm />} />
+          <Route path="/preference" element={<PreferencePage />} />
         </Routes>
       </div>
     </Router>

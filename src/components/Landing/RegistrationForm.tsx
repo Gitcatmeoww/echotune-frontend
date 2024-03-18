@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import { AxiosError } from 'axios';
-import { IUserData } from '../interfaces/IUserData';
+import { IUserData } from '../../interfaces/IUserData';
 
 const RegistrationForm: React.FC = () => {
   const [userData, setUserData] = useState<IUserData>({
@@ -9,6 +10,8 @@ const RegistrationForm: React.FC = () => {
     email: '',
     password: '',
   });
+
+  const navigate = useNavigate();
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
@@ -26,7 +29,8 @@ const RegistrationForm: React.FC = () => {
         userData,
       );
       console.log('User registered:', response.data);
-      // TODO: Handle post-registration logic here (e.g., redirecting to login)
+      // Redirect to the preference page
+      navigate('/preference');
     } catch (error: unknown) {
       // Check if 'error' is an instance of an Error and has 'response' property
       if (error instanceof Error && 'response' in error) {
