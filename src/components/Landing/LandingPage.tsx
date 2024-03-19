@@ -1,13 +1,26 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import RegistrationForm from './RegistrationForm';
+import { v4 as uuidv4 } from 'uuid';
 
 const LandingPage: React.FC = () => {
+  const navigate = useNavigate();
+
   const handleLogin = () => {
     // Logic to redirect to login page or show login form
   };
 
   const handleGuest = () => {
-    // Logic for handling guest access
+    let sessionId = localStorage.getItem('guestSessionId');
+    if (!sessionId) {
+      sessionId = uuidv4();
+      localStorage.setItem('guestSessionId', sessionId);
+    } else {
+      localStorage.setItem('guestSessionId', sessionId!);
+    }
+
+    console.log(sessionId);
+    navigate('/preference');
   };
 
   return (

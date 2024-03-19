@@ -23,6 +23,7 @@ const RegistrationForm: React.FC = () => {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
     try {
       const response = await axios.post(
         'http://localhost:8000/api/register/',

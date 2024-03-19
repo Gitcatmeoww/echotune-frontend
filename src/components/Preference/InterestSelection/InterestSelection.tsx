@@ -10,7 +10,7 @@ interface TabPanelProps {
   value: number;
 }
 
-function TabPanel(props: TabPanelProps) {
+const TabPanel: React.FC<TabPanelProps> = (props) => {
   const { children, value, index, ...other } = props;
   return (
     <div
@@ -23,7 +23,7 @@ function TabPanel(props: TabPanelProps) {
       {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
     </div>
   );
-}
+};
 
 function a11yProps(index: number) {
   return {
@@ -32,10 +32,21 @@ function a11yProps(index: number) {
   };
 }
 
-const InterestSelection: React.FC = () => {
+// Define props interface for InterestSelection component
+interface InterestSelectionProps {
+  interests: string[];
+  sources: string[];
+  setInterests: React.Dispatch<React.SetStateAction<string[]>>;
+  setSources: React.Dispatch<React.SetStateAction<string[]>>;
+}
+
+const InterestSelection: React.FC<InterestSelectionProps> = ({
+  interests,
+  setInterests,
+  sources,
+  setSources,
+}) => {
   const [tabValue, setTabValue] = useState(0);
-  const [interests, setInterests] = useState<string[]>(['Tech', 'LLMs']);
-  const [sources, setSources] = useState<string[]>(['CNN', 'New York Times']);
   const [suggestions, setSuggestions] = useState<string[]>([
     'Suggest Tag 1',
     'Suggest Tag 2',
@@ -51,24 +62,27 @@ const InterestSelection: React.FC = () => {
     setTabValue(newValue);
   };
 
+  const handleAddInterest = (newInterest: string) => {
+    if (!interests.includes(newInterest)) {
+      setInterests((prevInterests: string[]) => [
+        ...prevInterests,
+        newInterest,
+      ]);
+    }
+  };
+
+  const handleAddSource = (newSource: string) => {
+    if (!sources.includes(newSource)) {
+      setSources((prevSources: string[]) => [...prevSources, newSource]);
+    }
+  };
+
   const handleDeleteInterest = (interest: string) => {
     setInterests(interests.filter((i) => i !== interest));
   };
 
   const handleDeleteSource = (source: string) => {
     setSources(sources.filter((s) => s !== source));
-  };
-
-  const handleAddInterest = (interest: string) => {
-    if (!interests.includes(interest)) {
-      setInterests([...interests, interest]);
-    }
-  };
-
-  const handleAddSource = (source: string) => {
-    if (!sources.includes(source)) {
-      setSources([...sources, source]);
-    }
   };
 
   return (
@@ -88,7 +102,7 @@ const InterestSelection: React.FC = () => {
       {/* Interests Tab */}
       <TabPanel value={tabValue} index={0}>
         <div className="flex flex-wrap gap-2 mb-4">
-          {interests.map((interest) => (
+          {interests.map((interest: string) => (
             <Tag
               key={interest}
               label={interest}
@@ -107,7 +121,7 @@ const InterestSelection: React.FC = () => {
       {/* Sources Tab */}
       <TabPanel value={tabValue} index={1}>
         <div className="flex flex-wrap gap-2 mb-4">
-          {sources.map((source) => (
+          {sources.map((source: string) => (
             <Tag
               key={source}
               label={source}

@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import FeedContainer from './FeedsPreview/FeedContainer';
 import InterestSelection from './InterestSelection/InterestSelection';
@@ -7,9 +8,43 @@ import InterestSelection from './InterestSelection/InterestSelection';
 const PreferencePage: React.FC = () => {
   const navigate = useNavigate();
 
+  const [interests, setInterests] = useState<string[]>(['Tech', 'LLMs']);
+  const [sources, setSources] = useState<string[]>(['CNN', 'New York Times']);
+
+  const checkIfGuest = (): boolean => {
+    // Placeholder implementation
+    return !!localStorage.getItem('guestSessionId');
+  };
+
+  const savePreferences = async (
+    isGuest: boolean,
+    sessionId: string | null,
+  ) => {
+    const payload = {
+      is_guest: isGuest,
+      session_id: sessionId,
+      topics: interests,
+      sources: sources,
+    };
+
+    try {
+      const response = await axios.post(
+        'http://localhost:8000/api/save_preferences/',
+        payload,
+      );
+      console.log('Preferences saved successfully:', response.data);
+      navigate('/explore'); // Navigate on success
+    } catch (error) {
+      console.error('Error saving preferences:', error);
+      // Handle error
+    }
+  };
+
   const handleSavePreference = () => {
-    console.log('Preferences saved');
-    navigate('/explore');
+    const isGuest = checkIfGuest();
+    const sessionId = localStorage.getItem('guestSessionId');
+
+    savePreferences(isGuest, sessionId);
   };
 
   return (
@@ -27,7 +62,12 @@ const PreferencePage: React.FC = () => {
         <FeedContainer />
       </div>
       <div className="bg-white px-4 py-2 shadow sticky bottom-0 z-10">
-        <InterestSelection />
+        <InterestSelection
+          interests={interests}
+          sources={sources}
+          setInterests={setInterests}
+          setSources={setSources}
+        />
       </div>
     </div>
   );
