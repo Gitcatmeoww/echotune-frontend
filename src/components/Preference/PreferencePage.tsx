@@ -1,11 +1,15 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import FeedContainer from './FeedsPreview/FeedContainer';
 import InterestSelection from './InterestSelection/InterestSelection';
 
 const PreferencePage: React.FC = () => {
+  const navigate = useNavigate();
+
   const handleSavePreference = () => {
     console.log('Preferences saved');
+    navigate('/explore');
   };
 
   return (
