@@ -2,11 +2,12 @@ import axios from 'axios';
 import React, { useState, useEffect } from 'react';
 import { IArticle } from '../../interfaces/IArticle';
 import Card from '@mui/material/Card';
-import CardActionArea from '@mui/material/CardActionArea';
+import CardActions from '@mui/material/CardActions';
 import CardContent from '@mui/material/CardContent';
 import CardMedia from '@mui/material/CardMedia';
 import Typography from '@mui/material/Typography';
-import Grid from '@mui/material/Grid';
+import Button from '@mui/material/Button';
+import Box from '@mui/material/Box';
 
 const NewsFeed: React.FC = () => {
   const [articles, setArticles] = useState<IArticle[]>([]);
@@ -54,45 +55,52 @@ const NewsFeed: React.FC = () => {
     }
   };
 
+  const redirectToSource = (url: string) => {
+    window.open(url, '_blank');
+  };
+
   if (error) {
     return <div className="text-center text-red-500">{error}</div>;
   }
 
   return (
-    <div className="py-8 px-4">
-      <Grid container spacing={4}>
+    <Box sx={{ overflowX: 'auto', display: 'flex', padding: '20px' }}>
+      <Box sx={{ display: 'flex', flexDirection: 'row' }}>
         {articles.map((article) => (
-          <Grid item xs={12} sm={6} md={4} key={article.id}>
-            <Card>
-              <CardActionArea
-                href={article.url}
-                target="_blank"
-                rel="noopener noreferrer"
+          <Card
+            key={article.id}
+            sx={{ width: 345, margin: '10px', flexShrink: 0 }}
+          >
+            <CardMedia
+              component="img"
+              height="140"
+              image={article.image}
+              alt={article.title}
+            />
+            <CardContent>
+              <Typography gutterBottom variant="h5" component="div">
+                {article.title}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {new Date(article.publishedAt).toLocaleDateString()}
+              </Typography>
+              <Typography variant="body1" color="text.primary">
+                {article.description}
+              </Typography>
+            </CardContent>
+            <CardActions>
+              <Button
+                size="small"
+                color="primary"
+                onClick={() => redirectToSource(article.url)}
               >
-                <CardMedia
-                  component="img"
-                  height="140"
-                  image={article.image || '/static/images/defaultNewsImage.jpg'}
-                  alt={article.title}
-                />
-                <CardContent>
-                  <Typography gutterBottom variant="h5" component="div">
-                    {article.title}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {article.description}
-                  </Typography>
-                  <Typography variant="caption" display="block" gutterBottom>
-                    Published at:{' '}
-                    {new Date(article.publishedAt).toLocaleDateString()}
-                  </Typography>
-                </CardContent>
-              </CardActionArea>
-            </Card>
-          </Grid>
+                Read More
+              </Button>
+            </CardActions>
+          </Card>
         ))}
-      </Grid>
-    </div>
+      </Box>
+    </Box>
   );
 };
 
