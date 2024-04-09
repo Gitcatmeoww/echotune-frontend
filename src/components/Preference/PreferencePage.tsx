@@ -19,6 +19,7 @@ const PreferencePage: React.FC = () => {
   const savePreferences = async (
     isGuest: boolean,
     sessionId: string | null,
+    token: string | null,
   ) => {
     const payload = {
       is_guest: isGuest,
@@ -31,6 +32,11 @@ const PreferencePage: React.FC = () => {
       const response = await axios.post(
         'http://localhost:8000/api/save_preferences/',
         payload,
+        {
+          headers: {
+            Authorization: `Token ${token}`,
+          },
+        },
       );
       console.log('Preferences saved successfully:', response.data);
       navigate('/explore'); // Navigate on success
@@ -43,8 +49,9 @@ const PreferencePage: React.FC = () => {
   const handleSavePreference = () => {
     const isGuest = checkIfGuest();
     const sessionId = localStorage.getItem('guestSessionId');
+    const token = localStorage.getItem('token');
 
-    savePreferences(isGuest, sessionId);
+    savePreferences(isGuest, sessionId, token);
   };
 
   return (

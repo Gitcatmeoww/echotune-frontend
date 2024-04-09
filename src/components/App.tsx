@@ -5,6 +5,7 @@ import LandingPage from './Landing/LandingPage';
 import RegistrationForm from './Landing/RegistrationForm';
 import PreferencePage from './Preference/PreferencePage';
 import ExplorePage from './Explore/ExplorePage';
+import NewsFeed from './FeedPlayer/NewsFeed';
 
 const App = () => {
   return (
@@ -16,6 +17,7 @@ const App = () => {
           <Route path="/register" element={<RegistrationForm />} />
           <Route path="/preference" element={<PreferencePage />} />
           <Route path="/explore" element={<ExplorePage />} />
+          <Route path="/newsfeed" element={<NewsFeed />} />
         </Routes>
       </div>
     </Router>
