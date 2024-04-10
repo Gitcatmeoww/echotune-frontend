@@ -8,8 +8,7 @@ const ExplorePage: React.FC = () => {
   const [profileName, setProfileName] = useState('Competitor Research');
 
   const handleExplore = () => {
-    console.log('Exploring...');
-    // navigate('/feedplayer');
+    navigate('/newsfeed');
   };
 
   const handleEdit = () => {

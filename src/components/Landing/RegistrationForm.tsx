@@ -9,6 +9,8 @@ const RegistrationForm: React.FC = () => {
     username: '',
     email: '',
     password: '',
+    // Adding a sessionId to associate guest preferences upon registration
+    sessionId: localStorage.getItem('guestSessionId') || '',
   });
 
   const navigate = useNavigate();
@@ -30,6 +32,13 @@ const RegistrationForm: React.FC = () => {
         userData,
       );
       console.log('User registered:', response.data);
+
+      // Store the token in localStorage
+      localStorage.setItem('token', response.data.token);
+
+      // Clear the sessionId from localStorage after successful registration to ensure the user is no longer treated as a guest
+      localStorage.removeItem('guestSessionId');
+
       // Redirect to the preference page
       navigate('/preference');
     } catch (error: unknown) {
