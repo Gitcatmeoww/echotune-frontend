@@ -21,7 +21,7 @@ const LandingPage: React.FC = () => {
         'http://localhost:8000/api/login/',
         loginData,
       );
-      localStorage.setItem('token', response.data.access);
+      localStorage.setItem('token', response.data.token);
       console.log('Login successful:', response.data);
       navigate('/preference');
     } catch (error) {
