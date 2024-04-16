@@ -1,14 +1,100 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import './LearningGoalForm.css';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { borders } from '@mui/system';
+
+import {
+  Box,
+  Button,
+  TextareaAutosize,
+  Typography,
+  Chip,
+  Stack,
+} from '@mui/material';
 
 const LearningGoalForm = () => {
-  const [learningGoal, setLearningGoal] = useState('');
-  // const [generatedTags, setGeneratedTags] = useState([]);
-  const [generatedTags, setGeneratedTags] = useState<string[]>([]);
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  // const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
+  const [learningGoal, setLearningGoal] = useState('');
+  const [generatedTags, setGeneratedTags] = useState<string[]>([]);
   const [selectedTags, setSelectedTags] = useState(new Set<string>());
+  const [interests, setInterests] = useState<string[]>(
+    location.state?.interests || [],
+  );
+  const [sources, setSources] = useState<string[]>(
+    location.state?.sources || ['CNN', 'New York Times'],
+  );
+
+  // const defaultSources = ['CNN', 'New York Times'];
+
+  const checkIfGuest = (): boolean => {
+    // Placeholder implementation
+    return !!localStorage.getItem('guestSessionId');
+  };
+
+  const savePreferences = async (
+    isGuest: boolean,
+    sessionId: string | null,
+    token: string | null,
+  ) => {
+    const payload = {
+      is_guest: isGuest,
+      session_id: sessionId,
+      topics: Array.from(selectedTags),
+      sources: sources,
+    };
+
+    try {
+      const response = await axios.post(
+        'http://localhost:8000/api/save_preferences/',
+        payload,
+        {
+          headers: {
+            Authorization: `Token ${token}`,
+          },
+        },
+      );
+      console.log('Preferences saved successfully:', response.data);
+      navigate('/explore'); // Navigate on success
+    } catch (error) {
+      console.error('Error saving preferences:', error);
+      // Handle error
+    }
+  };
+
+  // const handleContinue = () => {
+  //   const interests = Array.from(selectedTags);
+  //   const sources = ['CNN'];
+  //   // const isGuest = checkIfGuest();
+  //   // const sessionId = localStorage.getItem('guestSessionId');
+  //   // const token = localStorage.getItem('token');
+
+  //   // savePreferences(isGuest, sessionId, token);
+
+  //   // navigate('/newsfeed');
+  // };
+
+  const buttonStyle = {
+    opacity: generatedTags.length > 0 ? '0.3' : '1',
+  };
+
+  const handleContinue = () => {
+    console.log(Array.from(selectedTags));
+    console.log(sources);
+    const isGuest = checkIfGuest();
+    const sessionId = localStorage.getItem('guestSessionId');
+    const token = localStorage.getItem('token');
+
+    savePreferences(isGuest, sessionId, token);
+  };
+  // navigate('/preference', {
+  //   state: {
+  //     interests: Array.from(selectedTags),
+  //     sources: defaultSources,
+  //   },
+  //   });
+  // };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -17,26 +103,30 @@ const LearningGoalForm = () => {
         'http://localhost:8000/api/learning-goal/',
         { learningGoal },
       );
-
       if (response.data.status === 'success') {
-        console.log(response.data.GeneratedTags);
         const tagsArray = Array.isArray(response.data.GeneratedTags)
           ? response.data.GeneratedTags
           : response.data.GeneratedTags.split(', ');
         setGeneratedTags(tagsArray);
         processTags(tagsArray);
-
-        // setGeneratedTags(response.data.GeneratedTags);
-
-        // console.log(response.data.GeneratedTags);
-        // do something with the tags
       } else {
-        // Handle any case where the API does not return a status of 'success'
         console.error('API did not return a success status:', response.data);
       }
     } catch (error) {
       console.error('An error occurred while sending data:', error);
     }
+  };
+
+  const handleSelectTag = (tag: string) => {
+    setSelectedTags((prev) => {
+      const updated = new Set(prev);
+      if (updated.has(tag)) {
+        updated.delete(tag);
+      } else {
+        if (updated.size < 5) updated.add(tag);
+      }
+      return updated;
+    });
   };
 
   const handleRemoveTag = (tag: string) => {
@@ -48,37 +138,14 @@ const LearningGoalForm = () => {
     });
   };
 
-  const handleSelectTag = (tag: string) => {
-    setSelectedTags((prevSelectedTags) => {
-      const newSelectedTags = new Set(prevSelectedTags);
-      if (newSelectedTags.has(tag)) {
-        newSelectedTags.delete(tag);
-      } else {
-        // Limit the selection to 5 tags
-        if (newSelectedTags.size < 5) {
-          newSelectedTags.add(tag);
-        }
-      }
-      return newSelectedTags;
-    });
-  };
-
   const processTags = (tagsArray: string[]) => {
     setGeneratedTags(tagsArray);
-    // Select the first 5 tags by default
-    const initialSelectedTags = new Set(tagsArray.slice(0, 5));
-    setSelectedTags(initialSelectedTags);
+    console.log(tagsArray);
+    setSelectedTags(new Set(tagsArray.slice(0, 5)));
   };
 
-  // const processTags = (tags: string | string[]) => {
-  //   const tagsArray = Array.isArray(tags) ? tags : tags.split(', ');
-  //   setGeneratedTags(tagsArray);
-  //   // Ensure only the first three tags (or fewer, if there aren't three) are selected
-  //   setSelectedTags(new Set(tagsArray.slice(0, Math.min(5, tagsArray.length))));
-  // };
-
   return (
-    <div className="container">
+    <div className="container2">
       <form onSubmit={handleSubmit}>
         <div className="header">
           {/* <button className="back-button">Back</button> */}
@@ -98,6 +165,8 @@ const LearningGoalForm = () => {
             type="submit"
             // onSubmit={handleSubmit}
             className="add-button"
+            disabled={generatedTags.length > 0}
+            style={buttonStyle}
           >
             + Add
           </button>
@@ -118,7 +187,7 @@ const LearningGoalForm = () => {
                 <span
                   className="tag-close"
                   onClick={(e) => {
-                    e.stopPropagation(); // Prevent the tag container onClick from being called
+                    e.stopPropagation();
                     handleRemoveTag(tag);
                   }}
                 >
@@ -127,7 +196,11 @@ const LearningGoalForm = () => {
               </div>
             ))}
           </div>
-          <button className="continue-button">Continue</button>
+          {/* <div> */}
+          <button className="continue-button" onClick={handleContinue}>
+            Continue
+          </button>
+          {/* </div> */}
         </>
       ) : (
         <div className="examples">
@@ -149,51 +222,3 @@ const LearningGoalForm = () => {
 };
 
 export default LearningGoalForm;
-
-// import React, { useState } from 'react';
-// import axios from 'axios';
-
-// const LearningGoalForm = () => {
-//   const [learningGoal, setLearningGoal] = useState('');
-
-//   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-//     event.preventDefault();
-//     try {
-//       const response = await axios.post(
-//         'http://localhost:8000/api/learning-goal/',
-//         { learningGoal },
-//       );
-//       console.log(response.data);
-//     } catch (error) {
-//       console.error('An error occurred while sending data:', error);
-//     }
-//   };
-
-//   return (
-//     <div className="flex flex-col items-center justify-center h-screen bg-white px-4">
-//       <div className="w-full max-w-md">
-//         <form onSubmit={handleSubmit} className="mb-4">
-//           <h1 className="text-2xl font-bold border-b-2 pb-3 flex-grow">
-//             Learning Goal
-//           </h1>
-//           <input
-//             id="learningGoal"
-//             type="text"
-//             value={learningGoal}
-//             onChange={(e) => setLearningGoal(e.target.value)}
-//             placeholder="Enter your learning goal"
-//             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-4"
-//           />
-//           <button
-//             type="submit"
-//             className="bg-black text-white w-full hover:bg-gray-800 font-semibold py-2 px-4 border border-gray-300 rounded focus:outline-none focus:shadow-outline"
-//           >
-//             Submit
-//           </button>
-//         </form>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default LearningGoalForm;
