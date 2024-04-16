@@ -4,14 +4,28 @@ body {
   margin: 0;
 }
 
-.container {
+#learningGoal {
+  background: #252a41;
+  color: antiquewhite;
+
+  /* display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  min-height: 100vh;
+  background-color: #f5f5f5; */
+}
+
+.container2 {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   padding: 20px;
   min-height: 100vh;
-  background-color: #f5f5f5;
+  /* background-color: #f5f5f5; */
+  background: #1a1d2d;
 }
 
 .header {
@@ -29,6 +43,7 @@ body {
 .title {
   font-size: 24px;
   margin-bottom: 20px;
+  color: antiquewhite;
 }
 
 .input-group {
@@ -89,7 +104,9 @@ body {
   width: 100%;
   max-width: 460px;
   margin: 0 auto;
-  padding: 10px;
+  padding: 8px;
+  color: antiquewhite;
+
   /* box-sizing: border-box; */
   /* overflow-wrap: break-word; */
 }
@@ -105,6 +122,7 @@ body {
   margin-top: 10px;
   font-size: 0.9rem;
   border: 2px solid #556688;
+  color: antiquewhite;
 }
 
 .tag-close {
@@ -114,6 +132,7 @@ body {
 
 p {
   padding: 5px 5px;
+  color: antiquewhite;
 }
 /* .tag {
   padding: 8px;
@@ -124,11 +143,11 @@ p {
 
 .tag.selected {
   font-weight: bold;
-  border-color: #007bff; /* Change the border color for selected tags */
+  border-color: #2563eb; /* Change the border color for selected tags */
 }
 
 .continue-button {
-  background-color: #007bff;
+  background-color: #2563eb;
   color: #fff;
   padding: 10px 20px;
   border-radius: 8px;
