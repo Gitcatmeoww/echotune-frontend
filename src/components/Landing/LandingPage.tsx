@@ -47,7 +47,7 @@ const LandingPage: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-white px-4">
+    <div className="flex flex-col items-center justify-center h-screen px-4">
       <div className="w-full max-w-md">
         <RegistrationForm />
         <div className="my-8">

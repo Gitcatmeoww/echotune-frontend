@@ -26,7 +26,7 @@ const ExplorePage: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-gray-100 p-4">
+    <div className="flex flex-col items-center justify-center h-screen p-4">
       <div className="text-center mb-8 px-4">
         <h1 className="text-xl font-semibold mb-2">
           Your First Preference Profile Created Successfully!
