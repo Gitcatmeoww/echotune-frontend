@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { borders } from '@mui/system';
+import { useLearningGoal } from '../../contexts/LearningGoalContext';
 
 import {
   Box,
@@ -16,9 +17,15 @@ const LearningGoalForm = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [learningGoal, setLearningGoal] = useState('');
-  const [generatedTags, setGeneratedTags] = useState<string[]>([]);
-  const [selectedTags, setSelectedTags] = useState(new Set<string>());
+  const {
+    learningGoal,
+    setLearningGoal,
+    generatedTags,
+    setGeneratedTags,
+    selectedTags,
+    setSelectedTags,
+  } = useLearningGoal();
+
   const [interests, setInterests] = useState<string[]>(
     location.state?.interests || [],
   );
