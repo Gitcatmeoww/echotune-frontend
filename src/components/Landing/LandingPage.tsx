@@ -84,14 +84,14 @@ const LandingPage: React.FC = () => {
         ) : (
           <button
             onClick={handleLogin}
-            className="bg-transparent text-black hover:text-gray-800 font-semibold py-2 px-4 border border-gray-300 rounded w-full mb-4"
+            className="bg-transparent text-white hover:text-gray-800 font-semibold py-2 px-4 border border-gray-300 rounded w-full mb-4"
           >
             Log in
           </button>
         )}
         <button
           onClick={handleGuest}
-          className="bg-transparent text-black hover:text-gray-800 font-semibold py-2 px-4 border border-gray-300 rounded w-full"
+          className="bg-transparent text-white hover:text-gray-800 font-semibold py-2 px-4 border border-gray-300 rounded w-full"
         >
           Join as a guest
         </button>

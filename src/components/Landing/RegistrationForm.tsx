@@ -61,7 +61,7 @@ const RegistrationForm: React.FC = () => {
 
   return (
     <div className="flex flex-col justify-center p-6">
-      <h1 className="text-2xl font-bold mb-8">Sign up</h1>
+      <h1 className="text-2xl font-bold mb-8 text-white">Sign up</h1>
       <form onSubmit={handleSubmit} className="w-full max-w-xs">
         <div className="mb-4">
           <input
