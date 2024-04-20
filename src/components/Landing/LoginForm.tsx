@@ -50,8 +50,8 @@ const LoginForm: React.FC = () => {
       // Clear the sessionId from localStorage after successful registration to ensure the user is no longer treated as a guest
       localStorage.removeItem('guestSessionId');
 
-      // Redirect to the preference page
-      navigate('/learning-goal');
+      // Redirect to the home page
+      navigate('/home');
     } catch (error: unknown) {
       // Check if 'error' is an instance of an Error and has 'response' property
       if (error instanceof Error && 'response' in error) {

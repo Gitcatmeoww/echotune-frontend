@@ -23,7 +23,7 @@ const LandingPage: React.FC = () => {
       );
       localStorage.setItem('token', response.data.token);
       console.log('Login successful:', response.data);
-      navigate('/learning-goal');
+      navigate('/home');
     } catch (error) {
       console.error('Login failed:');
     }
@@ -43,7 +43,7 @@ const LandingPage: React.FC = () => {
     }
 
     console.log(sessionId);
-    navigate('/preference');
+    navigate('/learning-goal');
   };
 
   return (
