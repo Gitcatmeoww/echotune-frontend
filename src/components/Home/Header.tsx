@@ -42,7 +42,7 @@ const Header: React.FC = () => {
   };
 
   return (
-    <div className="flex items-center justify-start bg-[#1E2235] p-4 space-x-2 text-sm font-medium">
+    <div className="flex items-center justify-start p-4 space-x-2 text-sm font-medium">
       {/* User Avatar */}
       <Avatar sx={{ bgcolor: red[500], fontWeight: 'bold', fontSize: 18 }}>
         U

@@ -11,7 +11,7 @@ import NewsFeed from './FeedPlayer/NewsFeed';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { LearningGoalProvider } from '../contexts/LearningGoalContext';
-import Header from './Home/Header';
+import HomePage from './Home/HomePage';
 
 const theme = createTheme({
   palette: {
@@ -35,7 +35,7 @@ const App = () => {
               <Route path="/explore" element={<ExplorePage />} />
               <Route path="/learning-goal" element={<LearningGoalForm />} />
               <Route path="/newsfeed" element={<NewsFeed />} />
-              <Route path="/home" element={<Header />} />
+              <Route path="/home" element={<HomePage />} />
             </Routes>
           </div>
         </Router>
