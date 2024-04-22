@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { borders } from '@mui/system';
 import { useLearningGoal } from '../../contexts/LearningGoalContext';
 
 import {
@@ -12,6 +11,8 @@ import {
   Chip,
   Stack,
 } from '@mui/material';
+
+import NorthWestIcon from '@mui/icons-material/NorthWest';
 
 const LearningGoalForm = () => {
   const navigate = useNavigate();
@@ -70,17 +71,10 @@ const LearningGoalForm = () => {
     }
   };
 
-  // const handleContinue = () => {
-  //   const interests = Array.from(selectedTags);
-  //   const sources = ['CNN'];
-  //   // const isGuest = checkIfGuest();
-  //   // const sessionId = localStorage.getItem('guestSessionId');
-  //   // const token = localStorage.getItem('token');
-
-  //   // savePreferences(isGuest, sessionId, token);
-
-  //   // navigate('/newsfeed');
-  // };
+  const handleExampleClick = async (example: string) => {
+    setLearningGoal(example);
+    await handleSubmit(example); // Call handleSubmit with the example string
+  };
 
   const buttonStyle = {
     opacity: generatedTags.length > 0 ? '0.3' : '1',
@@ -103,8 +97,7 @@ const LearningGoalForm = () => {
   //   });
   // };
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const handleSubmit = async (learningGoal: string) => {
     try {
       const response = await axios.post(
         'http://localhost:8000/api/learning-goal/',
@@ -123,6 +116,27 @@ const LearningGoalForm = () => {
       console.error('An error occurred while sending data:', error);
     }
   };
+
+  // const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  //   event.preventDefault();
+  //   try {
+  //     const response = await axios.post(
+  //       'http://localhost:8000/api/learning-goal/',
+  //       { learningGoal },
+  //     );
+  //     if (response.data.status === 'success') {
+  //       const tagsArray = Array.isArray(response.data.GeneratedTags)
+  //         ? response.data.GeneratedTags
+  //         : response.data.GeneratedTags.split(', ');
+  //       setGeneratedTags(tagsArray);
+  //       processTags(tagsArray);
+  //     } else {
+  //       console.error('API did not return a success status:', response.data);
+  //     }
+  //   } catch (error) {
+  //     console.error('An error occurred while sending data:', error);
+  //   }
+  // };
 
   const handleSelectTag = (tag: string) => {
     setSelectedTags((prev) => {
@@ -151,9 +165,20 @@ const LearningGoalForm = () => {
     setSelectedTags(new Set(tagsArray.slice(0, 5)));
   };
 
+  const exampleStyle = {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  };
+
   return (
     <div className="container2">
-      <form onSubmit={handleSubmit}>
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          handleSubmit(learningGoal);
+        }}
+      >
         <div className="header">
           {/* <button className="back-button">Back</button> */}
           <h1 className="title">What do you want to stay informed about?</h1>
@@ -212,15 +237,46 @@ const LearningGoalForm = () => {
       ) : (
         <div className="examples">
           <p>Examples</p>
-          <div className="example">
-            Keep me updated on the SF Giants games this season
+          <div
+            className="example"
+            style={exampleStyle}
+            onClick={() =>
+              handleExampleClick(
+                'Keep me updated on the SF Giants games this season',
+              )
+            }
+          >
+            Keep me updated on the SF Giants games this season <NorthWestIcon />
           </div>
-          <div className="example">What is Billie Eilish up to these days?</div>
-          <div className="example">
-            I want to learn about bird species in the Caribbean Islands
+          <div
+            className="example"
+            style={exampleStyle}
+            onClick={() =>
+              handleExampleClick('What is Billie Eilish up to these days?')
+            }
+          >
+            What is Billie Eilish up to these days? <NorthWestIcon />
           </div>
-          <div className="example">
-            Give me trending tips for composting at home
+          <div
+            className="example"
+            style={exampleStyle}
+            onClick={() =>
+              handleExampleClick(
+                'I want to learn about bird species in the Caribbean Islands',
+              )
+            }
+          >
+            I want to learn about bird species in the Caribbean Islands{' '}
+            <NorthWestIcon />
+          </div>
+          <div
+            className="example"
+            style={exampleStyle}
+            onClick={() =>
+              handleExampleClick('Give me trending tips for composting at home')
+            }
+          >
+            Give me trending tips for composting at home <NorthWestIcon />
           </div>
         </div>
       )}
