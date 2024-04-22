@@ -1,75 +1,50 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import CustomButton from '../Utils/CustomButton';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import ExploreCard from './ExploreCard';
+import { useLearningGoal } from '../../contexts/LearningGoalContext';
 
 const ExplorePage: React.FC = () => {
   const navigate = useNavigate();
 
-  const [isEditing, setIsEditing] = useState(false);
-  const [profileName, setProfileName] = useState('Competitor Research');
+  const { selectedTags } = useLearningGoal();
+
+  function capitalizeFirstLetter(string: string) {
+    if (!string) return '';
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  }
+
+  const firstTag = capitalizeFirstLetter(selectedTags.values().next().value); // Retrieve the first tag
 
   const handleExplore = () => {
     navigate('/newsfeed');
   };
 
-  const handleEdit = () => {
-    setIsEditing(true);
-  };
-
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setProfileName(event.target.value);
-  };
-
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') {
-      setIsEditing(false);
-    }
-  };
-
   return (
-    <div className="flex flex-col items-center justify-center h-screen p-4">
-      <div className="text-center mb-8 px-4">
-        <h1 className="text-xl font-semibold mb-2">
-          Your First Preference Profile Created Successfully!
-        </h1>
-      </div>
-      <div className="bg-white shadow-lg rounded-lg p-6 mb-8 w-full max-w-md">
-        <div className="flex flex-col items-center mb-4">
-          <div className="bg-gray-300 rounded-full w-12 h-12 flex items-center justify-center mb-4">
-            <span className="text-lg">📊</span> {/* Emoji placeholder */}
-          </div>
-          {isEditing ? (
-            <input
-              type="text"
-              value={profileName}
-              onChange={handleChange}
-              onKeyDown={handleKeyDown}
-              onBlur={() => setIsEditing(false)} // Save when focus is lost
-              autoFocus
-              className="text-lg font-bold text-gray-800 mb-2 bg-transparent border-b-2 border-blue-500 outline-none"
-            />
-          ) : (
-            <div className="flex flex-col justify-center items-center">
-              <div className="mb-2">
-                <span className="text-lg font-bold text-gray-800">
-                  {profileName}
-                </span>
-              </div>
-              <button
-                onClick={handleEdit}
-                className="text-blue-500 hover:text-blue-700 text-sm"
-              >
-                Edit name
-              </button>
-            </div>
-          )}
+    <div className="flex flex-col h-screen p-4">
+      {/* Centered Content */}
+      <div className="flex-grow flex flex-col items-center justify-center">
+        <div className="text-center text-white px-4 mb-8">
+          <h1 className="text-xl font-semibold mb-2">Congratulations!</h1>
+          <p className="text-white">You created your first podcast!</p>
         </div>
+
+        <ExploreCard
+          imgSrc="https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?q=80&w=2969&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+          title={firstTag}
+          description={`Keep up with ${firstTag}`}
+        />
       </div>
-      <button
-        onClick={handleExplore}
-        className="bg-black text-white hover:bg-gray-800 font-bold py-2 px-6 rounded-lg focus:outline-none focus:shadow-outline"
-      >
-        Explore
-      </button>
+
+      {/* Button at the bottom */}
+      <div className="w-full mt-auto mb-8">
+        <CustomButton
+          label="Continue"
+          Icon={ArrowForwardIcon}
+          onClick={handleExplore}
+        />
+      </div>
     </div>
   );
 };

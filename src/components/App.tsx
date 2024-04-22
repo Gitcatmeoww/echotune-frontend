@@ -10,6 +10,8 @@ import LearningGoalForm from './LearningGoal/LearningGoalForm';
 import NewsFeed from './FeedPlayer/NewsFeed';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
+import { LearningGoalProvider } from '../contexts/LearningGoalContext';
+import HomePage from './Home/HomePage';
 
 const theme = createTheme({
   palette: {
@@ -23,18 +25,21 @@ const App = () => {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Router>
-        <div>
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/register" element={<RegistrationForm />} />
-            <Route path="/preference" element={<PreferencePage />} />
-            <Route path="/explore" element={<ExplorePage />} />
-            <Route path="/learning-goal" element={<LearningGoalForm />} />
-            <Route path="/newsfeed" element={<NewsFeed />} />
-          </Routes>
-        </div>
-      </Router>
+      <LearningGoalProvider>
+        <Router>
+          <div>
+            <Routes>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/register" element={<RegistrationForm />} />
+              <Route path="/preference" element={<PreferencePage />} />
+              <Route path="/explore" element={<ExplorePage />} />
+              <Route path="/learning-goal" element={<LearningGoalForm />} />
+              <Route path="/newsfeed" element={<NewsFeed />} />
+              <Route path="/home" element={<HomePage />} />
+            </Routes>
+          </div>
+        </Router>
+      </LearningGoalProvider>
     </ThemeProvider>
   );
 };

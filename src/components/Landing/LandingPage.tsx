@@ -23,7 +23,7 @@ const LandingPage: React.FC = () => {
       );
       localStorage.setItem('token', response.data.token);
       console.log('Login successful:', response.data);
-      navigate('/learning-goal');
+      navigate('/home');
     } catch (error) {
       console.error('Login failed:');
     }
@@ -43,7 +43,7 @@ const LandingPage: React.FC = () => {
     }
 
     console.log(sessionId);
-    navigate('/preference');
+    navigate('/learning-goal');
   };
 
   return (
@@ -84,14 +84,14 @@ const LandingPage: React.FC = () => {
         ) : (
           <button
             onClick={handleLogin}
-            className="bg-transparent text-black hover:text-gray-800 font-semibold py-2 px-4 border border-gray-300 rounded w-full mb-4"
+            className="bg-transparent text-white hover:text-gray-800 font-semibold py-2 px-4 border border-gray-300 rounded w-full mb-4"
           >
             Log in
           </button>
         )}
         <button
           onClick={handleGuest}
-          className="bg-transparent text-black hover:text-gray-800 font-semibold py-2 px-4 border border-gray-300 rounded w-full"
+          className="bg-transparent text-white hover:text-gray-800 font-semibold py-2 px-4 border border-gray-300 rounded w-full"
         >
           Join as a guest
         </button>
