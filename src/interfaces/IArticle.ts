@@ -6,6 +6,6 @@ export interface IArticle {
   url: string;
   image: string;
   publishedAt: string;
-  sourceName: string;
+  source_name: string;
   sourceUrl: string;
 }
