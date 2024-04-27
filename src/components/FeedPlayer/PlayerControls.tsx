@@ -45,15 +45,13 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({ currentSummary }) => {
     };
   }, []);
 
-  // const handleProgress = () => {
-  //   setPlayedTime(
-  //     (audioRef.current.currentTime / audioRef.current.duration) * 100,
-  //   );
-  // };
-
   const handleProgress = () => {
     setPlayedTime(audioRef.current.currentTime);
   };
+
+  // const handleProgress = () => {
+  //   setPlayedTime(audioRef.current.currentTime);
+  // };
 
   const handleAudioEnded = () => {
     setIsPlaying(false);
