@@ -28,6 +28,7 @@ const ExplorePage: React.FC = () => {
         <div className="text-center text-white px-4 mb-8">
           <h1 className="text-xl font-semibold mb-2">Congratulations!</h1>
           <p className="text-white">You created your first podcast!</p>
+          {/* 2nd podcast */}
         </div>
 
         <ExploreCard

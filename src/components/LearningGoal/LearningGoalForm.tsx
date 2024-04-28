@@ -162,7 +162,8 @@ const LearningGoalForm = () => {
   const processTags = (tagsArray: string[]) => {
     setGeneratedTags(tagsArray);
     console.log(tagsArray);
-    setSelectedTags(new Set(tagsArray.slice(0, 5)));
+    //default selection
+    setSelectedTags(new Set(tagsArray.slice(0, 3)));
   };
 
   const exampleStyle = {
@@ -181,7 +182,9 @@ const LearningGoalForm = () => {
       >
         <div className="header">
           {/* <button className="back-button">Back</button> */}
+          {/* first login */}
           <h1 className="title">What do you want to stay informed about?</h1>
+          {/* other text  */}
         </div>
         <div className="input-group">
           <textarea
@@ -208,7 +211,7 @@ const LearningGoalForm = () => {
       {generatedTags.length > 0 ? (
         <>
           <div className="tags-output">
-            <p>Select up to 5 keywords</p>
+            <p>You can select upto 5 relevant keywords</p>
             {generatedTags.map((tag, index) => (
               <div
                 key={index}
@@ -240,13 +243,9 @@ const LearningGoalForm = () => {
           <div
             className="example"
             style={exampleStyle}
-            onClick={() =>
-              handleExampleClick(
-                'Keep me updated on the SF Giants games this season',
-              )
-            }
+            onClick={() => handleExampleClick('Berkeley Local News')}
           >
-            Keep me updated on the SF Giants games this season <NorthWestIcon />
+            Berkeley Local News <NorthWestIcon />
           </div>
           <div
             className="example"
