@@ -18,45 +18,95 @@ import axios from 'axios';
 
 interface PlayerControlsProps {
   currentSummary: string | null;
+  imageUrl?: string;
+  onNextClick: () => void;
+  onPreviousClick: () => void;
 }
 
-const PlayerControls: React.FC<PlayerControlsProps> = ({ currentSummary }) => {
+const PlayerControls: React.FC<PlayerControlsProps> = ({
+  currentSummary,
+  imageUrl,
+  onNextClick,
+  onPreviousClick,
+}) => {
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [loading, setLoading] = useState(false);
   const [playedTime, setPlayedTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [autoplay, setAutoplay] = useState(true);
+
   const audioRef = useRef(new Audio());
   const theme = useTheme();
 
   useEffect(() => {
     const audio = audioRef.current;
-    audio.addEventListener('timeupdate', handleProgress);
-    audio.addEventListener('ended', handleAudioEnded);
     audio.addEventListener('loadedmetadata', () => {
       setDuration(audio.duration);
     });
 
+    audio.addEventListener('timeupdate', handleProgress);
+    audio.addEventListener('ended', handleAudioEnded);
+
     return () => {
-      audio.src = '';
+      audio.removeEventListener('loadedmetadata', handleMetadata);
       audio.removeEventListener('timeupdate', handleProgress);
       audio.removeEventListener('ended', handleAudioEnded);
-      URL.revokeObjectURL(audio.src); // Clean up Blob URL
+      URL.revokeObjectURL(audio.src);
     };
   }, []);
 
-  const handleProgress = () => {
-    setPlayedTime(audioRef.current.currentTime);
+  const handleMetadata = () => {
+    setDuration(audioRef.current.duration);
   };
 
-  // const handleProgress = () => {
-  //   setPlayedTime(audioRef.current.currentTime);
-  // };
+  const handleProgress = () => {
+    const currentTime = audioRef.current.currentTime;
+    setPlayedTime(currentTime);
+  };
 
   const handleAudioEnded = () => {
     setIsPlaying(false);
-    setPlayedTime(0); // Reset the time to start
+    setPlayedTime(0);
   };
+
+  useEffect(() => {
+    const playAudio = async () => {
+      console.log('audioUrl', audioUrl);
+      if (!audioUrl && currentSummary) {
+        setLoading(true);
+        try {
+          const response = await axios.post(
+            'http://localhost:8000/api/generate_audio/',
+            { articleContent: currentSummary },
+            { responseType: 'blob' },
+          );
+          const audioBlob = response.data;
+          const url = URL.createObjectURL(audioBlob);
+          audioRef.current.src = url;
+          setAudioUrl(url);
+          setLoading(false);
+          if (autoplay) {
+            audioRef.current.play();
+            setIsPlaying(true);
+          }
+        } catch (error) {
+          console.error('Error playing the audio:', error);
+          setLoading(false);
+        }
+      }
+    };
+
+    playAudio();
+
+    return () => {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      setIsPlaying(false);
+      setAutoplay(false);
+      setAudioUrl(null);
+    };
+  }, [currentSummary]);
 
   const handlePlayClick = async () => {
     console.log(currentSummary);
@@ -73,6 +123,8 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({ currentSummary }) => {
         audioRef.current.src = url;
         setAudioUrl(url); // Update state to manage URL
         setLoading(false);
+        audioRef.current.play();
+        setIsPlaying(true);
       } catch (error) {
         console.error('Error playing the audio:', error);
         setLoading(false);
@@ -103,7 +155,7 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({ currentSummary }) => {
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
-      padding: '10px',
+      padding: '20px',
       gap: '24px',
       backgroundColor: '#252A41',
       boxShadow: theme.shadows[2],
@@ -114,6 +166,7 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({ currentSummary }) => {
   };
 
   const [volume, setVolume] = useState(100);
+
   const handleVolumeChange = (event: Event, newValue: number | number[]) => {
     const newVolume = Array.isArray(newValue) ? newValue[0] : newValue;
     setVolume(newVolume);
@@ -130,10 +183,46 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({ currentSummary }) => {
     setAnchorEl(null);
   };
 
+  const handleSliderChange = (
+    event: Event,
+    newValue: number | number[],
+    activeThumb: number,
+  ) => {
+    if (typeof newValue === 'number') {
+      const newTime = (newValue / 100) * duration;
+      audioRef.current.currentTime = newTime;
+      setPlayedTime(newTime);
+    }
+  };
+
   return (
-    <Box>
-      <Box sx={styles.playerBox}>
-        <IconButton aria-label="previous" sx={styles.iconButton}>
+    <Box
+      sx={{
+        width: '100%',
+        bgcolor: '#252A41',
+        padding: '10px',
+      }}
+    >
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: '20px',
+        }}
+      >
+        {imageUrl && (
+          <img
+            src={imageUrl}
+            alt="Article Thumbnail"
+            style={{ width: '36px', height: '36px', objectFit: 'cover' }}
+          />
+        )}
+        <IconButton
+          aria-label="previous"
+          sx={{ color: '#FFFFFF' }}
+          onClick={onPreviousClick}
+        >
           <SkipPreviousIcon />
         </IconButton>
         {loading ? (
@@ -142,22 +231,25 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({ currentSummary }) => {
           <IconButton
             aria-label="play/pause"
             onClick={handlePlayClick}
-            sx={styles.iconButton}
+            sx={{ color: '#FFFFFF' }}
           >
             {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
           </IconButton>
         )}
-        <IconButton aria-label="next" sx={styles.iconButton}>
+        <IconButton
+          aria-label="next"
+          sx={{ color: '#FFFFFF' }}
+          onClick={onNextClick}
+        >
           <SkipNextIcon />
         </IconButton>
         <IconButton
           aria-label="volume"
+          sx={{ color: '#FFFFFF' }}
           onClick={handleVolumeClick}
-          sx={styles.iconButton}
         >
           <VolumeUpIcon />
         </IconButton>
-
         <Popover
           id={id}
           open={open}
@@ -183,31 +275,48 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({ currentSummary }) => {
           </Box>
         </Popover>
       </Box>
-      <Box
-        sx={{
-          marginLeft: 5,
-          marginRight: 5,
-          display: 'flex',
-          alignItems: 'center',
-        }}
-      >
-        <Typography variant="body2" sx={{ minWidth: 35 }}>
-          {formatTime(playedTime)}
-        </Typography>
+      {/* Timing and Progress Bar */}
+      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            minWidth: '35px',
+            height: '20px',
+            bgcolor: '#3B3F54',
+            borderRadius: '40px',
+            px: 1,
+          }}
+        >
+          <Typography sx={{ minWidth: '35px', fontSize: 'small' }}>
+            {formatTime(playedTime)}
+          </Typography>
+        </Box>
         <Slider
+          value={playedTime}
+          onChange={handleSliderChange}
           aria-labelledby="audio-progress"
           sx={{ flex: 1, mx: 2 }}
-          value={(playedTime / duration) * 100 || 0}
-          onChange={(event, newValue) => {
-            const newTime = ((newValue as number) / 100) * duration;
-            audioRef.current.currentTime = newTime;
-            setPlayedTime(newTime);
-          }}
-          max={100}
+          max={duration}
         />
-        <Typography variant="body2" sx={{ minWidth: 35 }}>
-          {formatTime(duration)}
-        </Typography>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            minWidth: '35px',
+            height: '20px',
+            bgcolor: '#3B3F54',
+            borderRadius: '40px',
+            px: 1,
+          }}
+        >
+          <Typography sx={{ minWidth: '35px', fontSize: 'small' }}>
+            {/* {formatTime(duration)} */}
+            {formatTime(duration - playedTime)}
+          </Typography>
+        </Box>
       </Box>
     </Box>
   );
