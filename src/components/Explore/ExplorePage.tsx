@@ -1,5 +1,5 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import CustomButton from '../Utils/CustomButton';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import ExploreCard from './ExploreCard';
@@ -8,14 +8,31 @@ import { useLearningGoal } from '../../contexts/LearningGoalContext';
 const ExplorePage: React.FC = () => {
   const navigate = useNavigate();
 
-  const { selectedTags } = useLearningGoal();
+  const location = useLocation();
+  const [receivedSelectedTags, setreceivedSelectedTags] = useState<Set<string>>(
+    new Set(),
+  );
+
+  // const receivedSelectedTags = location.state?.selectedTags;
+
+  useEffect(() => {
+    const receivedTags = location.state?.selectedTags;
+    if (receivedTags) {
+      setreceivedSelectedTags(new Set(receivedTags));
+    }
+  }, [location]);
+
+  // const { selectedTags } = useLearningGoal();
 
   function capitalizeFirstLetter(string: string) {
     if (!string) return '';
     return string.charAt(0).toUpperCase() + string.slice(1);
   }
 
-  const firstTag = capitalizeFirstLetter(selectedTags.values().next().value); // Retrieve the first tag
+  const firstTag = capitalizeFirstLetter(
+    receivedSelectedTags.values().next().value,
+  ); // Retrieve the first tag
+  console.log(firstTag);
 
   const handleExplore = () => {
     navigate('/newsfeed');
