@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useLearningGoal } from '../../contexts/LearningGoalContext';
@@ -10,22 +10,32 @@ import {
   Typography,
   Chip,
   Stack,
+  IconButton,
 } from '@mui/material';
 
 import NorthWestIcon from '@mui/icons-material/NorthWest';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import CloseIcon from '@mui/icons-material/Close';
 
 const LearningGoalForm = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const {
-    learningGoal,
-    setLearningGoal,
-    generatedTags,
-    setGeneratedTags,
-    selectedTags,
-    setSelectedTags,
-  } = useLearningGoal();
+  // const {
+  //   learningGoal,
+  //   setLearningGoal,
+  //   generatedTags,
+  //   setGeneratedTags,
+  //   selectedTags,
+  //   setSelectedTags,
+  // } = useLearningGoal();
+
+  const [learningGoal, setLearningGoal] = useState<string>('');
+  const [generatedTags, setGeneratedTags] = useState<string[]>([]);
+  const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
+
+  // Track initial learning goal for comparison
+  const initialLearningGoal = useRef(learningGoal);
 
   const [interests, setInterests] = useState<string[]>(
     location.state?.interests || [],
@@ -64,7 +74,8 @@ const LearningGoalForm = () => {
         },
       );
       console.log('Preferences saved successfully:', response.data);
-      navigate('/explore'); // Navigate on success
+
+      navigate('/explore', { state: { selectedTags } }); // Navigate on success
     } catch (error) {
       console.error('Error saving preferences:', error);
       // Handle error
@@ -89,13 +100,6 @@ const LearningGoalForm = () => {
 
     savePreferences(isGuest, sessionId, token);
   };
-  // navigate('/preference', {
-  //   state: {
-  //     interests: Array.from(selectedTags),
-  //     sources: defaultSources,
-  //   },
-  //   });
-  // };
 
   const handleSubmit = async (learningGoal: string) => {
     try {
@@ -104,11 +108,13 @@ const LearningGoalForm = () => {
         { learningGoal },
       );
       if (response.data.status === 'success') {
+        console.log('response.data.GeneratedTags');
         const tagsArray = Array.isArray(response.data.GeneratedTags)
           ? response.data.GeneratedTags
           : response.data.GeneratedTags.split(', ');
         setGeneratedTags(tagsArray);
         processTags(tagsArray);
+        // setSelectedTags(new Set());
       } else {
         console.error('API did not return a success status:', response.data);
       }
@@ -116,27 +122,6 @@ const LearningGoalForm = () => {
       console.error('An error occurred while sending data:', error);
     }
   };
-
-  // const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-  //   event.preventDefault();
-  //   try {
-  //     const response = await axios.post(
-  //       'http://localhost:8000/api/learning-goal/',
-  //       { learningGoal },
-  //     );
-  //     if (response.data.status === 'success') {
-  //       const tagsArray = Array.isArray(response.data.GeneratedTags)
-  //         ? response.data.GeneratedTags
-  //         : response.data.GeneratedTags.split(', ');
-  //       setGeneratedTags(tagsArray);
-  //       processTags(tagsArray);
-  //     } else {
-  //       console.error('API did not return a success status:', response.data);
-  //     }
-  //   } catch (error) {
-  //     console.error('An error occurred while sending data:', error);
-  //   }
-  // };
 
   const handleSelectTag = (tag: string) => {
     setSelectedTags((prev) => {
@@ -166,10 +151,25 @@ const LearningGoalForm = () => {
     setSelectedTags(new Set(tagsArray.slice(0, 3)));
   };
 
+  useEffect(() => {
+    // Check if learning goal has changed from its initial value
+    if (learningGoal !== initialLearningGoal.current) {
+      setGeneratedTags([]);
+      // Clear selected tags
+      setSelectedTags(new Set());
+    }
+    // Update reference for future comparisons
+    initialLearningGoal.current = learningGoal;
+  }, [learningGoal]);
+
   const exampleStyle = {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
+  };
+
+  const onBackClick = async () => {
+    navigate('/home');
   };
 
   return (
@@ -181,11 +181,15 @@ const LearningGoalForm = () => {
         }}
       >
         <div className="header">
-          {/* <button className="back-button">Back</button> */}
+          <IconButton sx={{ color: '#FFFFFF' }} onClick={onBackClick}>
+            <ArrowBackIcon />
+          </IconButton>
+          <button className="back-button">Back</button>
           {/* first login */}
-          <h1 className="title">What do you want to stay informed about?</h1>
           {/* other text  */}
         </div>
+        <h1 className="title">What do you want to stay informed about?</h1>
+
         <div className="input-group">
           <textarea
             id="learningGoal"
@@ -196,12 +200,21 @@ const LearningGoalForm = () => {
             wrap="soft"
           />
 
-          <button
+          {/* <button
             type="submit"
             // onSubmit={handleSubmit}
             className="add-button"
             disabled={generatedTags.length > 0}
             style={buttonStyle}
+          > */}
+          <button
+            type="submit"
+            className="add-button"
+            disabled={generatedTags.length > 0}
+            style={{
+              opacity: generatedTags.length > 0 ? '0.3' : '1',
+            }}
+            onClick={() => handleSubmit(learningGoal)}
           >
             + Add
           </button>
@@ -219,15 +232,17 @@ const LearningGoalForm = () => {
                 onClick={() => handleSelectTag(tag)}
               >
                 {tag}
-                <span
-                  className="tag-close"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleRemoveTag(tag);
-                  }}
-                >
-                  x
-                </span>
+                {selectedTags.has(tag) && ( // Only show close icon if tag is selected
+                  <span
+                    className="tag-close"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveTag(tag);
+                    }}
+                  >
+                    <CloseIcon fontSize="small" />
+                  </span>
+                )}
               </div>
             ))}
           </div>
@@ -243,9 +258,14 @@ const LearningGoalForm = () => {
           <div
             className="example"
             style={exampleStyle}
-            onClick={() => handleExampleClick('Berkeley Local News')}
+            onClick={() =>
+              handleExampleClick(
+                'I want to learn about top product updates in the generative AI space',
+              )
+            }
           >
-            Berkeley Local News <NorthWestIcon />
+            I want to learn about top product updates in the generative AI space{' '}
+            <NorthWestIcon />
           </div>
           <div
             className="example"

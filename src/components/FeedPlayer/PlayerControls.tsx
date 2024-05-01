@@ -7,12 +7,13 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import PlayArrowOutlinedIcon from '@mui/icons-material/PlayArrowOutlined';
 import PauseIcon from '@mui/icons-material/Pause';
 import StopIcon from '@mui/icons-material/Stop';
-import SkipNextIcon from '@mui/icons-material/SkipNext';
-import SkipPreviousIcon from '@mui/icons-material/SkipPrevious';
-import VolumeUpIcon from '@mui/icons-material/VolumeUp';
+import SkipNextOutlinedIcon from '@mui/icons-material/SkipNextOutlined';
+import SkipPreviousOutlinedIcon from '@mui/icons-material/SkipPreviousOutlined';
+import VolumeUpOutlinedIcon from '@mui/icons-material/VolumeUpOutlined';
+import VolumeOffOutlinedIcon from '@mui/icons-material/VolumeOffOutlined';
 import CircularProgress from '@mui/material/CircularProgress';
 import axios from 'axios';
 
@@ -35,6 +36,7 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
   const [playedTime, setPlayedTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [autoplay, setAutoplay] = useState(true);
+  const [muted, setMuted] = useState(false);
 
   const audioRef = useRef(new Audio());
   const theme = useTheme();
@@ -146,6 +148,15 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
     return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
   };
 
+  const handleVolumeClick = () => {
+    setMuted(!muted);
+    if (!muted) {
+      audioRef.current.volume = 0;
+    } else {
+      audioRef.current.volume = 1;
+    }
+  };
+
   const styles = {
     playerBox: {
       position: 'static',
@@ -165,23 +176,23 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
     },
   };
 
-  const [volume, setVolume] = useState(100);
+  // const [volume, setVolume] = useState(100);
 
-  const handleVolumeChange = (event: Event, newValue: number | number[]) => {
-    const newVolume = Array.isArray(newValue) ? newValue[0] : newValue;
-    setVolume(newVolume);
-    audioRef.current.volume = newVolume / 100;
-  };
+  // const handleVolumeChange = (event: Event, newValue: number | number[]) => {
+  //   const newVolume = Array.isArray(newValue) ? newValue[0] : newValue;
+  //   setVolume(newVolume);
+  //   audioRef.current.volume = newVolume / 100;
+  // };
 
-  const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
-  const open = Boolean(anchorEl);
-  const id = open ? 'simple-popover' : undefined;
-  const handleVolumeClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
+  // const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
+  // const open = Boolean(anchorEl);
+  // const id = open ? 'simple-popover' : undefined;
+  // const handleVolumeClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+  //   setAnchorEl(event.currentTarget);
+  // };
+  // const handleClose = () => {
+  //   setAnchorEl(null);
+  // };
 
   const handleSliderChange = (
     event: Event,
@@ -200,50 +211,87 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
       sx={{
         width: '100%',
         bgcolor: '#252A41',
-        padding: '10px',
+        padding: '2px',
+        borderRadius: '12px',
       }}
     >
       <Box
         sx={{
           display: 'flex',
-          justifyContent: 'center',
           alignItems: 'center',
-          gap: '20px',
+          justifyContent: 'space-between',
+          // p: 1,
+          bgcolor: '#252A41',
         }}
       >
+        {/* Thumbnail on the left */}
         {imageUrl && (
           <img
             src={imageUrl}
             alt="Article Thumbnail"
-            style={{ width: '36px', height: '36px', objectFit: 'cover' }}
+            style={{
+              width: '36px',
+              height: '36px',
+              objectFit: 'cover',
+              borderRadius: '6px',
+              marginLeft: '15px',
+            }}
           />
         )}
-        <IconButton
-          aria-label="previous"
-          sx={{ color: '#FFFFFF' }}
-          onClick={onPreviousClick}
+
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '2px',
+          }}
         >
-          <SkipPreviousIcon />
-        </IconButton>
-        {loading ? (
-          <CircularProgress />
-        ) : (
           <IconButton
-            aria-label="play/pause"
-            onClick={handlePlayClick}
+            aria-label="previous"
+            onClick={onPreviousClick}
             sx={{ color: '#FFFFFF' }}
           >
-            {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
+            <SkipPreviousOutlinedIcon fontSize="large" />
           </IconButton>
-        )}
+          {loading ? (
+            <CircularProgress size={24} />
+          ) : (
+            <IconButton
+              aria-label="play/pause"
+              onClick={handlePlayClick}
+              sx={{ color: '#FFFFFF' }}
+            >
+              {isPlaying ? (
+                <PauseIcon />
+              ) : (
+                <PlayArrowOutlinedIcon fontSize="large" />
+              )}
+            </IconButton>
+          )}
+          <IconButton
+            aria-label="next"
+            onClick={onNextClick}
+            sx={{ color: '#FFFFFF' }}
+          >
+            <SkipNextOutlinedIcon fontSize="large" />
+          </IconButton>
+        </Box>
+
+        {/* Volume control on the right */}
         <IconButton
-          aria-label="next"
+          aria-label="volume"
+          onClick={handleVolumeClick}
           sx={{ color: '#FFFFFF' }}
-          onClick={onNextClick}
         >
-          <SkipNextIcon />
+          {muted ? (
+            <VolumeOffOutlinedIcon fontSize="medium" />
+          ) : (
+            <VolumeUpOutlinedIcon fontSize="medium" />
+          )}
         </IconButton>
-        <IconButton
+      </Box>
+
+      {/* <IconButton
           aria-label="volume"
           sx={{ color: '#FFFFFF' }}
           onClick={handleVolumeClick}
@@ -273,11 +321,11 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
               sx={{ height: '100%' }}
             />
           </Box>
-        </Popover>
-      </Box>
+        </Popover> */}
+      {/* </Box> */}
       {/* Timing and Progress Bar */}
       <Box sx={{ display: 'flex', alignItems: 'center' }}>
-        <Box
+        {/* <Box
           sx={{
             display: 'flex',
             justifyContent: 'center',
@@ -292,12 +340,12 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
           <Typography sx={{ minWidth: '35px', fontSize: 'small' }}>
             {formatTime(playedTime)}
           </Typography>
-        </Box>
+        </Box> */}
         <Slider
           value={playedTime}
           onChange={handleSliderChange}
           aria-labelledby="audio-progress"
-          sx={{ flex: 1, mx: 2 }}
+          sx={{ flex: 1, mx: 3, color: '#FFFFFF' }}
           max={duration}
         />
         <Box
@@ -305,16 +353,16 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            minWidth: '35px',
+            // minWidth: '35px',
             height: '20px',
             bgcolor: '#3B3F54',
             borderRadius: '40px',
             px: 1,
+            marginRight: 1,
           }}
         >
           <Typography sx={{ minWidth: '35px', fontSize: 'small' }}>
-            {/* {formatTime(duration)} */}
-            {formatTime(duration - playedTime)}
+            {/* {formatTime(duration)} */}-{formatTime(duration - playedTime)}
           </Typography>
         </Box>
       </Box>

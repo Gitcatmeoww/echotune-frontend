@@ -34,15 +34,19 @@ const NewsFeed: React.FC = () => {
   const [expandedArticleId, setExpandedArticleId] = useState<string | null>(
     null,
   );
+  const [drawerOpen, setDrawerOpen] = React.useState(false);
 
   const toggleSummary = (articleId: string | null) => {
     setExpandedArticleId((currentId) =>
       currentId === articleId ? null : articleId,
     );
   };
+  const toggleDrawer = () => {
+    setDrawerOpen(!drawerOpen);
+  };
 
   interface SummariesType {
-    [key: string]: string | undefined; // This means each key is a string and its value is either string or undefined
+    [key: string]: string | undefined;
   }
   const sliderRef = useRef<Slider | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -99,11 +103,24 @@ const NewsFeed: React.FC = () => {
 
   const settings = {
     dots: false,
-    infinite: true,
+    infinite: false,
     speed: 500,
+    arrows: false,
     slidesToShow: 1,
     slidesToScroll: 1,
-    adaptiveHeight: false,
+    adaptiveHeight: true,
+    centerMode: true,
+    // width: '200px !important',
+
+    // const settings = {
+    //   dots: false,
+    //   infinite: true,
+    //   speed: 500,
+    //   slidesToShow: 1,
+    //   slidesToScroll: 1,
+    //   adaptiveHeight: false,
+    //   width: '200px!important',
+
     afterChange: (currentSlide: number) => {
       if (audioRef.current) {
         audioRef.current.pause();
@@ -174,12 +191,12 @@ const NewsFeed: React.FC = () => {
 
             if (articleId) {
               generateSummary(articleId);
-              observer.current?.unobserve(entry.target); // Use the observer ref here
+              observer.current?.unobserve(entry.target);
             }
           }
         });
       },
-      { threshold: 0.1 },
+      { threshold: 0.5 },
     );
 
     articleCards.forEach((card) => {
@@ -238,7 +255,7 @@ const NewsFeed: React.FC = () => {
       sx={{
         // overflowX: 'auto',
         // display: 'flex',
-        padding: '20px',
+        // padding: '2  0px',
         position: 'relative',
         pb: '40px',
       }}
@@ -251,11 +268,15 @@ const NewsFeed: React.FC = () => {
               position: 'relative',
               // height: expandedArticleId === article.id ? '100vh' : 'auto', // Adjust the height dynamically
               transition: 'height 0.5s ease',
-              width: 345,
-              height: 345,
-              margin: '10px',
+              // width: '200px!important',
+              // maxWidth: '300px', // Adjust this value to control the card width
+              padding: '20px',
+
+              height: 385,
+              // margin: '10px',
               color: 'success.dark',
               bgcolor: '#1E2235',
+              opacity: drawerOpen ? 0.2 : 1,
               // maxHeight: expandedArticleId === article.id ? '500px' : '300px',
             }}
             data-article-id={article.id}
@@ -266,7 +287,12 @@ const NewsFeed: React.FC = () => {
           >
             <CardMedia
               component="img"
-              sx={{ height: 140, width: '100%', objectFit: 'cover' }}
+              sx={{
+                height: 140,
+                borderRadius: '12px',
+                width: '100%',
+                objectFit: 'cover',
+              }}
               image={article.image}
               alt={article.title}
             />
@@ -280,7 +306,7 @@ const NewsFeed: React.FC = () => {
             >
               <Typography
                 gutterBottom
-                variant="body1"
+                variant="body2"
                 component="div"
                 color="#FFFFFF"
               >
@@ -306,10 +332,30 @@ const NewsFeed: React.FC = () => {
                 </Box>
               </Typography>
             </CardContent>
+            {/* <CardActions
+              sx={{
+                justifyContent: 'flex-end',
+                marginRight: '15px',
+              }}
+            > */}
             <CardActions
-              sx={{ justifyContent: 'flex-end', marginRight: '15px' }}
+              sx={{
+                justifyContent: 'flex-end',
+                position: 'absolute', // Position it absolutely within the relative parent Card
+                bottom: 20,
+                right: 20,
+                bgcolor: '#252A41',
+                borderRadius: '40px',
+                // p: 1, // Padding around the icons
+              }}
             >
-              <Box>
+              {/* <Box> */}
+              <Box
+                sx={{
+                  display: 'flex',
+                  gap: '5px', // Spacing between each button
+                }}
+              >
                 <IconButton aria-label="like" style={{ color: 'white' }}>
                   <ThumbUpOffAltIcon fontSize="small" />
                 </IconButton>
@@ -319,160 +365,82 @@ const NewsFeed: React.FC = () => {
                 <IconButton aria-label="bookmark" style={{ color: 'white' }}>
                   <BookmarkBorderIcon fontSize="small" />
                 </IconButton>
-                <NorthEastIcon
-                  style={{ color: 'white' }}
-                  onClick={() => window.open(article.url, '_blank')}
-                />
+                <IconButton aria-label="bookmark" style={{ color: 'white' }}>
+                  <NorthEastIcon
+                    aria-label="redirect"
+                    style={{ color: 'white' }}
+                    onClick={() => window.open(article.url, '_blank')}
+                  />{' '}
+                </IconButton>
               </Box>
             </CardActions>
           </Card>
         ))}
       </Slider>
 
+      {/* {selectedArticle && ( */}
+      {/* <Card sx={{ bgcolor: '#1E2235' }}> */}
       {selectedArticle && (
-        <Card sx={{ bgcolor: '#1E2235' }}>
-          <Box
-            onClick={() => toggleSummary(selectedArticle.id)}
-            sx={{
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              p: 1,
-              bottom: 0,
-              marginTop: 1,
-              cursor: 'pointer',
-              position: 'relative',
-              zIndex: 2,
-            }}
-          >
+        // <Card sx={{ bgcolor: '#1E2235', position: 'relative' }}>
+        <Box sx={{ position: 'relative' }}>
+          <Card sx={{ bgcolor: '#1E2235' }}>
             <Box
               sx={{
-                width: '40px',
-                height: '4px',
-                bgcolor: '#ABADC6',
-                borderRadius: '3px',
-                marginInline: 'auto',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bgcolor: '#1E2235',
+                borderRadius: '8px 8px 0 0',
+                transform: drawerOpen ? 'translateY(-85%)' : 'translateY(3%)',
+                transition: 'transform 0.3s ease-out',
+                zIndex: 2,
+                overflow: 'hidden',
+                paddingBottom: '20px',
               }}
-            />
-          </Box>
-
-          <Typography
-            variant="body2"
-            sx={{
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              p: '10px',
-            }}
-          >
-            {summaries[selectedArticle.id] ? (
+            >
               <Box
                 sx={{
-                  padding: '5px',
-                  height:
-                    expandedArticleId === selectedArticle?.id
-                      ? '300px'
-                      : '100px',
-
-                  // height: '10px',
-                  overflow: 'auto',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  padding: '15px',
                 }}
               >
-                {/* {summaries[selectedArticle.id]} */}
-                {(summaries[selectedArticle.id] ?? '').slice(0, 120)}...
-              </Box>
-            ) : (
-              <CircularProgress />
-            )}
-          </Typography>
-          <SwipeableDrawer
-            anchor="bottom"
-            open={expandedArticleId === selectedArticle?.id}
-            onClose={() => toggleSummary(null)}
-            onOpen={() => toggleSummary(selectedArticle.id)}
-            // swipeAreaWidth={56}
-            disablePortal={true}
-            disableSwipeToOpen={false}
-            ModalProps={{
-              BackdropProps: {
-                style: { position: 'absolute' },
-                invisible: true, // Makes the backdrop invisible
-              },
-              // ModalProps={{
-              //   keepMounted: true,
-            }}
-            sx={{
-              '.MuiDrawer-paper ': {
-                height: 'calc(100% - 180px)',
-                top: 64,
-                fontSize: 'small',
-                // zIndex: 800,
-              },
-            }}
-            PaperProps={{
-              sx: {
-                backgroundColor: '#1E2235',
-                padding: '25px',
-                // height: '300px',
-                overflow: 'auto',
-                borderTopLeftRadius: 8,
-                borderTopRightRadius: 8,
-                position: 'relative',
-                zIndex: 2,
-                // height: '80%',
-                // top: 'calc(100% - 150px)',
-              },
-            }}
-          >
-            <Box
-              sx={{
-                // display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                p: 1,
-                bottom: 0,
-                marginTop: 1,
-                cursor: 'pointer',
-                position: 'relative',
-                zIndex: 2,
-              }}
-            >
-              <Box
-                onClick={() => toggleSummary(null)}
-                sx={{
-                  width: '40px',
-                  height: '4px',
-                  bgcolor: '#ABADC6',
-                  borderRadius: '3px',
-                  marginInline: 'auto',
-                  bottom: '20px',
-                }}
-              />
-            </Box>
-
-            <Box
-              // sx={{
-              //   padding: '15px',
-              // }}
-              onClick={() => toggleSummary(null)}
-            >
-              {summaries[selectedArticle.id] ? (
                 <Box
+                  onClick={() => setDrawerOpen(!drawerOpen)}
                   sx={{
-                    overflow: 'auto',
-                    height: '100%',
-                    color: '#FFFFFF',
-                    padding: '15px',
+                    width: '80px',
+                    height: '4px',
+                    bgcolor: '#ABADC6',
+                    borderRadius: '8  px',
+                    cursor: 'pointer',
                   }}
-                >
-                  {summaries[selectedArticle.id]}
-                </Box>
-              ) : (
-                <CircularProgress />
-              )}
+                />
+              </Box>
+              <Box
+                sx={{
+                  color: '#FFFFFF',
+                  paddingLeft: '30px',
+                  paddingRight: '30px',
+                  fontSize: '14px',
+                  textAlign: 'justify',
+                  justifyItems: 'center',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  maxHeight: drawerOpen ? '300px' : '90px',
+                  overflow: drawerOpen ? 'auto' : 'hidden',
+                }}
+              >
+                {summaries[selectedArticle.id] ? (
+                  summaries[selectedArticle.id]
+                ) : (
+                  <CircularProgress size={24} />
+                )}
+              </Box>
             </Box>
-          </SwipeableDrawer>
-        </Card>
+          </Card>
+        </Box>
       )}
 
       <Box
@@ -492,198 +460,7 @@ const NewsFeed: React.FC = () => {
         />
       </Box>
     </Box>
-
-    // </Box>
   );
 };
-{
-  /* <Card
-        //   sx={{
-        //     bgcolor: '#1E2235',
-        //   }}
-        // >
-        //   <Box
-        //     onClick={() => toggleSummary(selectedArticle.id)}
-        //     sx={{
-        //       display: 'flex',
-        //       justifyContent: 'center',
-        //       alignItems: 'center',
-        //       p: 1,
-        //       bottom: 0,
-        //       marginTop: 1,
-        //       cursor: 'pointer',
-        //       position: 'relative',
-        //       // top: expandedArticleId === selectedArticle.id ? '5px' : '-20px',
-        //       // bgcolor: '#1E2235',
-        //       zIndex: 2,
-        //     }}
-        //   >
-        //     <Box
-        //       sx={{
-        //         width: '40px',
-        //         height: '4px',
-        //         bgcolor: '#ABADC6',
-        //         borderRadius: '3px',
-        //       }}
-        //     />
-        //   </Box>
-        //   <Box
-        //     sx={{
-        //       position:
-        //         expandedArticleId === selectedArticle?.id
-        //           ? 'absolute'
-        //           : 'static',
-        //       top: expandedArticleId === selectedArticle?.id ? '30px' : '-100%', // Adjust the top property to cover the first card
-        //       left: 0,
-        //       width: '100%',
-        //       backgroundColor: '#1E2235',
-        //       overflow: 'hidden',
-        //       padding:
-        //         expandedArticleId === selectedArticle?.id ? '25px' : '5px',
-        //       // zIndex: expandedArticleId === selectedArticle?.id ? 2 : 1,
-
-        //       height: '-webkit-fill-available',
-        //       transition: 'bottom 0.5s ease',
-        //     }}
-        //   >
-            // <Typography
-            //   variant="body2"
-            //   sx={{
-            //     display: 'flex',
-            //     justifyContent: 'center',
-            //     alignItems: 'center',
-            //     p: '10px',
-            //   }}
-            // >
-            //   {summaries[selectedArticle.id] ? (
-            //     <Box
-            //       sx={{
-            //         padding: '5px',
-            //         height:
-            //           expandedArticleId === selectedArticle?.id
-            //             ? '300px'
-            //             : '50px',
-
-            //         // height: '50px',
-            //         overflow: 'auto',
-            //       }}
-            //     >
-            //       {summaries[selectedArticle.id]}
-            //     </Box>
-            //   ) : (
-            //     <CircularProgress />
-            //   )}
-            // </Typography>
-        //   </Box>
-
-          // <Box
-          //   sx={{
-          //     position: 'relative',
-          //     top: '20px',
-          //     left: 0,
-          //     right: 0,
-          //     bottom: 0,
-          //     zIndex: 1100,
-          //   }}
-          // > */
-}
-
-{
-  /* <CardContent>
-              <Box
-                onClick={() => toggleSummary(article.id)}
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  p: 1,
-                  bottom: 0,
-                  marginTop: 1,
-                  cursor: 'pointer',
-                  position: 'relative',
-                  // top: expandedArticleId === article.id ? '0' : '-25px',
-                  // bgcolor: '#1E2235',
-                  zIndex: 2,
-                }}
-              >
-                <Box
-                  sx={{
-                    width: '40px',
-                    height: '4px',
-                    bgcolor: '#ABADC6',
-                    borderRadius: '3px',
-                  }}
-                />
-              </Box>
-            </CardContent> */
-}
-
-{
-  /* <Box
-              sx={{
-                position: 'absolute',
-                top:
-                  expandedArticleId === article.id ? '0' : 'calc(100% - 50px)',
-                left: 0,
-                width: '100%',
-                height: '100%',
-                backgroundColor: '#1E2235',
-                overflow: 'hidden',
-                zIndex: 1,
-                transition: 'top 0.5s ease',
-              }}
-            > */
-}
-{
-  /*            
-              <Typography
-                variant="body2"
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  p: '10px',
-                }}
-              >
-                {summaries[article.id] ? (
-                  <Box
-                    sx={{
-                      padding: '5px',
-                      height: '320px',
-                      overflow: 'auto',
-                    }}
-                  >
-                    {summaries[article.id]}
-                  </Box>
-                ) : (
-                  <CircularProgress />
-                )}
-              </Typography> */
-}
-{
-  /* </Box>
-          </Card>
-        ))}
-      </Slider> */
-}
-{
-  /* <Box
-        sx={{
-          position: 'relative',
-          bottom: '0vh',
-          left: 0,
-          right: 0,
-          zIndex: 1100,
-        }}
-      >
-        <PlayerControls currentSummary={currentSummary} />
-      </Box>
-      <PlayerControls currentSummary={currentSummary} /> */
-}
-{
-  /* </Box>
-  );
-}; */
-}
 
 export default NewsFeed;

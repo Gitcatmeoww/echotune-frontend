@@ -31,13 +31,15 @@ body {
 .header {
   text-align: left;
   width: 100%;
+  display: 'flex';
 }
 
 .back-button {
   background: none;
   border: none;
-  margin-bottom: 20px;
+  /* margin-bottom: 20px; */
   cursor: pointer;
+  color: white;
 }
 
 .title {
