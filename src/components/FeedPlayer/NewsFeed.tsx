@@ -29,21 +29,20 @@ const NewsFeed: React.FC = () => {
   const [articles, setArticles] = useState<IArticle[]>([]);
   const [error, setError] = useState<string>('');
   const [currentSummary, setCurrentSummary] = useState<string | null>(null);
+
   const [selectedArticle, setSelectedArticle] = useState<IArticle | null>(null);
 
-  const [expandedArticleId, setExpandedArticleId] = useState<string | null>(
-    null,
-  );
+  // const [expandedArticleId, setExpandedArticleId] = useState<string | null>(null, );
   const [drawerOpen, setDrawerOpen] = React.useState(false);
 
-  const toggleSummary = (articleId: string | null) => {
-    setExpandedArticleId((currentId) =>
-      currentId === articleId ? null : articleId,
-    );
-  };
-  const toggleDrawer = () => {
-    setDrawerOpen(!drawerOpen);
-  };
+  // const toggleSummary = (articleId: string | null) => {
+  //   setExpandedArticleId((currentId) =>
+  //     currentId === articleId ? null : articleId,
+  //   );
+  // };
+  // const toggleDrawer = () => {
+  //   setDrawerOpen(!drawerOpen);
+  // };
 
   interface SummariesType {
     [key: string]: string | undefined;

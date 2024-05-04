@@ -15,6 +15,7 @@ import {
 
 import NorthWestIcon from '@mui/icons-material/NorthWest';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import KeyboardBackspaceIcon from '@mui/icons-material/KeyboardBackspace';
 import CloseIcon from '@mui/icons-material/Close';
 
 const LearningGoalForm = () => {
@@ -33,6 +34,7 @@ const LearningGoalForm = () => {
   const [learningGoal, setLearningGoal] = useState<string>('');
   const [generatedTags, setGeneratedTags] = useState<string[]>([]);
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
+  const [hashTag, sethashTag] = useState<string>('');
 
   // Track initial learning goal for comparison
   const initialLearningGoal = useRef(learningGoal);
@@ -55,6 +57,7 @@ const LearningGoalForm = () => {
     isGuest: boolean,
     sessionId: string | null,
     token: string | null,
+    hashTag: string,
   ) => {
     const payload = {
       is_guest: isGuest,
@@ -62,6 +65,8 @@ const LearningGoalForm = () => {
       topics: Array.from(selectedTags),
       sources: sources,
     };
+
+    console.log('HashTag at savePreferences:', hashTag);
 
     try {
       const response = await axios.post(
@@ -75,7 +80,7 @@ const LearningGoalForm = () => {
       );
       console.log('Preferences saved successfully:', response.data);
 
-      navigate('/explore', { state: { selectedTags } }); // Navigate on success
+      // navigate('/explore', { state: { hashTag } }); // Navigate on success
     } catch (error) {
       console.error('Error saving preferences:', error);
       // Handle error
@@ -91,14 +96,54 @@ const LearningGoalForm = () => {
     opacity: generatedTags.length > 0 ? '0.3' : '1',
   };
 
-  const handleContinue = () => {
+  const getHashtag = async () => {
+    try {
+      const hashtagResponse = await axios.post(
+        'http://localhost:8000/api/getHashtag/',
+        { learningGoal },
+      );
+      if (hashtagResponse.data.status === 'success') {
+        const generatedHashtag = hashtagResponse.data.generatedHashtag;
+        console.log('HASHTAG generated:', generatedHashtag);
+        return generatedHashtag; // Return the hashtag from the function
+      } else {
+        console.error('Error fetching hashtags:', hashtagResponse.data);
+        return null; // Return null if the hashtag was not successfully retrieved
+      }
+    } catch (error) {
+      console.error('An error occurred while fetching hashtags:', error);
+      return null;
+    }
+  };
+
+  const handleContinue = async () => {
     console.log(Array.from(selectedTags));
     console.log(sources);
     const isGuest = checkIfGuest();
     const sessionId = localStorage.getItem('guestSessionId');
     const token = localStorage.getItem('token');
 
-    savePreferences(isGuest, sessionId, token);
+    const generatedHashtag = await getHashtag(); // Get hashtag and wait for it
+
+    if (generatedHashtag) {
+      sethashTag(generatedHashtag); // Set hashtag in state
+      // savePreferences(isGuest, sessionId, token, generatedHashtag);
+
+      await savePreferences(
+        checkIfGuest(),
+        localStorage.getItem('guestSessionId'),
+        localStorage.getItem('token'),
+        generatedHashtag,
+      );
+      navigate('/explore', { state: { hashTag: generatedHashtag } }); // Navigate on success with the hashtag
+      //     savePreferences(isGuest, sessionId, token, generatedHashtag);
+      //   } else {
+      //     console.error('Error fetching hashtags:', hashtagResponse.data);
+      //   }
+      // } catch (error) {
+      //   console.error('An error occurred while fetching hashtags:', error);
+      // }
+    }
   };
 
   const handleSubmit = async (learningGoal: string) => {
@@ -139,7 +184,6 @@ const LearningGoalForm = () => {
     setSelectedTags((prevSelectedTags) => {
       const newSelectedTags = new Set(prevSelectedTags);
       newSelectedTags.delete(tag);
-
       return newSelectedTags;
     });
   };
@@ -182,7 +226,7 @@ const LearningGoalForm = () => {
       >
         <div className="header">
           <IconButton sx={{ color: '#FFFFFF' }} onClick={onBackClick}>
-            <ArrowBackIcon />
+            <KeyboardBackspaceIcon />
           </IconButton>
           <button className="back-button">Back</button>
           {/* first login */}

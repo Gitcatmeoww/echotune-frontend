@@ -5,9 +5,11 @@ import Avatar from '@mui/material/Avatar';
 import AddIcon from '@mui/icons-material/Add';
 import { red } from '@mui/material/colors';
 import IconButton from '@mui/material/IconButton';
+import { useNavigate } from 'react-router-dom';
 
 const Header: React.FC = () => {
   const [topics, setTopics] = useState<ITopicData[]>([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Get the stored token from local storage
@@ -41,6 +43,10 @@ const Header: React.FC = () => {
     return string.charAt(0).toUpperCase() + string.slice(1);
   };
 
+  const handleAddTopic = () => {
+    navigate('/learning-goal');
+  };
+
   return (
     <div className="flex items-center justify-start p-4 space-x-2 text-sm font-medium">
       {/* User Avatar */}
@@ -61,6 +67,7 @@ const Header: React.FC = () => {
 
       {/* Plus Icon wrapped in a circle */}
       <IconButton
+        onClick={handleAddTopic}
         sx={{
           color: 'white',
           backgroundColor: 'gray',
