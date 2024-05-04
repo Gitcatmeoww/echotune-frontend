@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Box,
   IconButton,
@@ -24,19 +24,116 @@ interface PlayerControlsProps {
   onPreviousClick: () => void;
 }
 
+interface AudioControlState {
+  audioUrl: string | null;
+  isPlaying: boolean;
+  loading: boolean;
+  playedTime: number;
+  duration: number;
+  muted: boolean;
+  autoplay: boolean;
+}
+
 const PlayerControls: React.FC<PlayerControlsProps> = ({
   currentSummary,
   imageUrl,
   onNextClick,
   onPreviousClick,
 }) => {
-  const [audioUrl, setAudioUrl] = useState<string | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [playedTime, setPlayedTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [autoplay, setAutoplay] = useState(true);
-  const [muted, setMuted] = useState(false);
+  const [audioControl, setAudioControl] = useState<AudioControlState>({
+    audioUrl: null,
+    isPlaying: false,
+    loading: false,
+    playedTime: 0,
+    duration: 0,
+    muted: false,
+    autoplay: true,
+  });
+
+  const placeholderAudioUrl = `${process.env.PUBLIC_URL}/intro2.mp3`;
+  const [isAudioLoading, setIsAudioLoading] = useState(false);
+
+  const {
+    audioUrl,
+    isPlaying,
+    loading,
+    playedTime,
+    duration,
+    muted,
+    autoplay,
+  } = audioControl;
+
+  useEffect(() => {
+    // Automatically load and play audio when currentSummary changes
+    const loadAndPlayAudio = async () => {
+      if (currentSummary && audioControl.autoplay) {
+        // Set loading state and start placeholder audio
+        setAudioControl((prev) => ({ ...prev, loading: true }));
+        try {
+          // Immediately play placeholder audio
+          audioRef.current.src = placeholderAudioUrl;
+          audioRef.current.loop = false;
+          await audioRef.current
+            .play()
+            .catch((e) => console.error('Error playing placeholder audio:', e));
+
+          // Fetch and prepare main audio
+          const response = await axios.post(
+            'http://localhost:8000/api/generate_audio/',
+            { articleContent: currentSummary },
+            { responseType: 'blob' },
+          );
+          const url = URL.createObjectURL(response.data);
+          console.log('here');
+
+          // Ensure audio element is not playing before switching source
+
+          audioRef.current.pause();
+          audioRef.current.src = url;
+          audioRef.current.loop = false;
+          audioRef.current.load(); // Important to reload the audio element after source change
+
+          // Attempt to play the loaded audio
+          audioRef.current.onloadedmetadata = async () => {
+            try {
+              await audioRef.current.play();
+              setAudioControl((prev) => ({
+                ...prev,
+                audioUrl: url,
+                isPlaying: true,
+                loading: false,
+                playedTime: 0,
+                duration: audioRef.current.duration,
+              }));
+            } catch (error) {
+              console.error('Error playing the main audio:', error);
+              setAudioControl((prev) => ({ ...prev, loading: false }));
+            }
+          };
+        } catch (error) {
+          console.error('Error fetching or playing audio:', error);
+          setAudioControl((prev) => ({ ...prev, loading: false }));
+        }
+      }
+    };
+
+    loadAndPlayAudio();
+
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+        URL.revokeObjectURL(audioRef.current.src);
+      }
+    };
+  }, [currentSummary]);
+  // const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  // const [isPlaying, setIsPlaying] = useState(false);
+  // const [loading, setLoading] = useState(false);
+  // const [playedTime, setPlayedTime] = useState(0);
+  // const [duration, setDuration] = useState(0);
+  // const [autoplay, setAutoplay] = useState(true);
+  // const [muted, setMuted] = useState(false);
 
   const audioRef = useRef(new Audio());
   const theme = useTheme();
@@ -44,7 +141,12 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
   useEffect(() => {
     const audio = audioRef.current;
     audio.addEventListener('loadedmetadata', () => {
-      setDuration(audio.duration);
+      setAudioControl((prev) => ({
+        ...prev,
+        duration: audioRef.current.duration,
+      }));
+
+      // setDuration(audio.duration);
     });
 
     audio.addEventListener('timeupdate', handleProgress);
@@ -59,88 +161,167 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
   }, []);
 
   const handleMetadata = () => {
-    setDuration(audioRef.current.duration);
+    setAudioControl((prev) => ({
+      ...prev,
+      duration: audioRef.current.duration,
+    }));
+    // setDuration(audioRef.current.duration);
   };
 
-  const handleProgress = () => {
+  // const handleProgress = () => {
+  //   const currentTime = audioRef.current.currentTime;
+  //   setPlayedTime(currentTime);
+  // };
+
+  const handleProgress = useCallback(() => {
     const currentTime = audioRef.current.currentTime;
-    setPlayedTime(currentTime);
-  };
+    setAudioControl((prev) => ({
+      ...prev,
+      playedTime: currentTime,
+    }));
+  }, []);
 
   const handleAudioEnded = () => {
-    setIsPlaying(false);
-    setPlayedTime(0);
+    setAudioControl((prev) => ({
+      ...prev,
+      isPlaying: false,
+      playedTime: 0,
+    }));
+    onNextClick();
+
+    console.log('Audio playback ended, moving to the next track.');
+    // setIsPlaying(false);
+    // setPlayedTime(0);
   };
 
   useEffect(() => {
-    const playAudio = async () => {
-      console.log('audioUrl', audioUrl);
-      if (!audioUrl && currentSummary) {
-        setLoading(true);
-        try {
-          const response = await axios.post(
-            'http://localhost:8000/api/generate_audio/',
-            { articleContent: currentSummary },
-            { responseType: 'blob' },
-          );
-          const audioBlob = response.data;
-          const url = URL.createObjectURL(audioBlob);
-          audioRef.current.src = url;
-          setAudioUrl(url);
-          setLoading(false);
-          if (autoplay) {
-            audioRef.current.play();
-            setIsPlaying(true);
-          }
-        } catch (error) {
-          console.error('Error playing the audio:', error);
-          setLoading(false);
-        }
-      }
-    };
-
-    playAudio();
-
     return () => {
       audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-      setIsPlaying(false);
-      setAutoplay(false);
-      setAudioUrl(null);
+      URL.revokeObjectURL(audioRef.current.src);
     };
-  }, [currentSummary]);
+  }, []);
 
-  const handlePlayClick = async () => {
-    console.log(currentSummary);
-    if (!audioUrl && currentSummary) {
-      setLoading(true);
-      try {
-        const response = await axios.post(
-          'http://localhost:8000/api/generate_audio/',
-          { articleContent: currentSummary },
-          { responseType: 'blob' },
-        );
-        const audioBlob = response.data;
-        const url = URL.createObjectURL(audioBlob);
-        audioRef.current.src = url;
-        setAudioUrl(url); // Update state to manage URL
-        setLoading(false);
-        audioRef.current.play();
-        setIsPlaying(true);
-      } catch (error) {
-        console.error('Error playing the audio:', error);
-        setLoading(false);
-      }
-    }
+  // useEffect(() => {
+  //   const playAudio = async () => {
+  //     console.log('audioUrl', audioUrl);
+  //     if (!audioUrl && currentSummary) {
+  //       setLoading(true);
+  //       console.log(imageUrl);
+  //       try {
+  //         const response = await axios.post(
+  //           'http://localhost:8000/api/generate_audio/',
+  //           { articleContent: currentSummary, articleURL: imageUrl },
+  //           { responseType: 'blob' },
+  //         );
+  //         const audioBlob = response.data;
+  //         const url = URL.createObjectURL(audioBlob);
+  //         audioRef.current.src = url;
+  //         setAudioUrl(url);
+  //         setLoading(false);
+  //         if (autoplay) {
+  //           audioRef.current.play();
+  //           setIsPlaying(true);
+  //         }
+  //       } catch (error) {
+  //         console.error('Error playing the audio:', error);
+  //         setLoading(false);
+  //       }
+  //     }
+  //   };
+
+  //   playAudio();
+
+  //   return () => {
+  //     audioRef.current.pause();
+  //     audioRef.current.currentTime = 0;
+  //     setIsPlaying(false);
+  //     setAutoplay(false);
+  //     setAudioUrl(null);
+  //   };
+  // }, [currentSummary]);
+
+  // const handlePlayClick = async () => {
+  //   console.log(currentSummary);
+  //   if (!audioUrl && currentSummary) {
+  //     setLoading(true);
+  //     try {
+  //       const response = await axios.post(
+  //         'http://localhost:8000/api/generate_audio/',
+  //         { articleContent: currentSummary },
+  //         { responseType: 'blob' },
+  //       );
+  //       const audioBlob = response.data;
+  //       const url = URL.createObjectURL(audioBlob);
+  //       audioRef.current.src = url;
+  //       setAudioUrl(url); // Update state to manage URL
+  //       setLoading(false);
+  //       audioRef.current.play();
+  //       setIsPlaying(true);
+  //     } catch (error) {
+  //       console.error('Error playing the audio:', error);
+  //       setLoading(false);
+  //     }
+  //   }
+  //   if (audioRef.current.src) {
+  //     if (isPlaying) {
+  //       audioRef.current.pause();
+  //     } else {
+  //       audioRef.current.play();
+  //     }
+  //     setIsPlaying(!isPlaying);
+  //   }
+  // };
+
+  const handlePlayClick = () => {
+    // Toggle play or pause
     if (audioRef.current.src) {
-      if (isPlaying) {
-        audioRef.current.pause();
-      } else {
+      if (audioRef.current.paused) {
         audioRef.current.play();
+        setAudioControl((prev) => ({ ...prev, isPlaying: true }));
+      } else {
+        audioRef.current.pause();
+        setAudioControl((prev) => ({ ...prev, isPlaying: false }));
       }
-      setIsPlaying(!isPlaying);
     }
   };
+
+  // const handlePlayClick = useCallback(async () => {
+  //   if (!audioControl.audioUrl && currentSummary) {
+  //     setAudioControl((prev) => ({ ...prev, loading: true }));
+  //     try {
+  //       const response = await axios.post(
+  //         'http://localhost:8000/api/generate_audio/',
+  //         { articleContent: currentSummary },
+  //         { responseType: 'blob' },
+  //       );
+  //       const url = URL.createObjectURL(response.data);
+  //       audioRef.current.src = url;
+  //       audioRef.current.onloadedmetadata = () => {
+  //         setAudioControl((prev) => ({
+  //           ...prev,
+  //           audioUrl: url,
+  //           isPlaying: true,
+  //           loading: false,
+  //           playedTime: 0,
+  //           duration: audioRef.current.duration,
+  //           muted: prev.muted, // Maintain the current mute state
+  //         }));
+  //         audioRef.current.play();
+  //       };
+  //     } catch (error) {
+  //       console.error('Error playing the audio:', error);
+  //       setAudioControl((prev) => ({ ...prev, loading: false }));
+  //     }
+  //   } else if (audioRef.current.src) {
+  //     if (audioRef.current.paused) {
+  //       audioRef.current.play();
+  //       setAudioControl((prev) => ({ ...prev, isPlaying: true }));
+  //     } else {
+  //       audioRef.current.pause();
+  //       setAudioControl((prev) => ({ ...prev, isPlaying: false }));
+  //     }
+  //   }
+  // }, [currentSummary, audioControl.audioUrl]);
 
   const formatTime = (time: number): string => {
     const minutes = Math.floor(time / 60);
@@ -148,33 +329,44 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
     return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
   };
 
+  // const handleVolumeClick = () => {
+  //   setMuted(!muted);
+  //   if (!muted) {
+  //     audioRef.current.volume = 0;
+  //   } else {
+  //     audioRef.current.volume = 1;
+  //   }
+  // };
+
   const handleVolumeClick = () => {
-    setMuted(!muted);
-    if (!muted) {
-      audioRef.current.volume = 0;
-    } else {
-      audioRef.current.volume = 1;
-    }
+    setAudioControl((prev) => ({
+      ...prev,
+      muted: !prev.muted,
+    }));
+    audioRef.current.volume = muted ? 1 : 0;
   };
 
-  const styles = {
-    playerBox: {
-      position: 'static',
-      bottom: 0,
-      left: 0,
-      right: 0,
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      padding: '20px',
-      gap: '24px',
-      backgroundColor: '#252A41',
-      boxShadow: theme.shadows[2],
-    },
-    iconButton: {
-      color: '#FFFFFF',
-    },
-  };
+  // Log the change for debugging or analytics
+  console.log(`Audio is now ${audioControl.muted ? 'muted' : 'unmuted'}.`);
+
+  // const styles = {
+  //   playerBox: {
+  //     position: 'static',
+  //     bottom: 0,
+  //     left: 0,
+  //     right: 0,
+  //     display: 'flex',
+  //     justifyContent: 'center',
+  //     alignItems: 'center',
+  //     padding: '20px',
+  //     gap: '24px',
+  //     backgroundColor: '#252A41',
+  //     boxShadow: theme.shadows[2],
+  //   },
+  //   iconButton: {
+  //     color: '#FFFFFF',
+  //   },
+  // };
 
   // const [volume, setVolume] = useState(100);
 
@@ -200,11 +392,28 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
     activeThumb: number,
   ) => {
     if (typeof newValue === 'number') {
-      const newTime = (newValue / 100) * duration;
+      const newTime = (newValue / 100) * audioControl.duration;
       audioRef.current.currentTime = newTime;
-      setPlayedTime(newTime);
+
+      // Update the played time in the audioControl state object
+      setAudioControl((prev) => ({
+        ...prev,
+        playedTime: newTime,
+      }));
     }
   };
+
+  // const handleSliderChange = (
+  //   event: Event,
+  //   newValue: number | number[],
+  //   activeThumb: number,
+  // ) => {
+  //   if (typeof newValue === 'number') {
+  //     const newTime = (newValue / 100) * duration;
+  //     audioRef.current.currentTime = newTime;
+  //     setPlayedTime(newTime);
+  //   }
+  // };
 
   return (
     <Box
@@ -325,22 +534,6 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
       {/* </Box> */}
       {/* Timing and Progress Bar */}
       <Box sx={{ display: 'flex', alignItems: 'center' }}>
-        {/* <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            minWidth: '35px',
-            height: '20px',
-            bgcolor: '#3B3F54',
-            borderRadius: '40px',
-            px: 1,
-          }}
-        >
-          <Typography sx={{ minWidth: '35px', fontSize: 'small' }}>
-            {formatTime(playedTime)}
-          </Typography>
-        </Box> */}
         <Slider
           value={playedTime}
           onChange={handleSliderChange}
