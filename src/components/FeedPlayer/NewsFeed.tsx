@@ -91,7 +91,7 @@ const NewsFeed: React.FC = () => {
         config,
       );
       setArticles(response.data);
-      // setSelectedArticle(response.data[0]);
+      // setSelectedArticle(response.data[0] || null);
       // console.log(response.data[0]);
       // handleCardSelect(response.data[0]);
     } catch (error) {

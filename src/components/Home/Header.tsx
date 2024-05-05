@@ -8,15 +8,27 @@ import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import IconButton from '@mui/material/IconButton';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
+import { ResponsiveText } from 'react-responsive-text';
+import NavBar from './NavBar';
 
-const Header: React.FC = () => {
+interface HeaderProps {
+  onTopicSelect: (topic: string) => void;
+  selectedTopic: string | null;
+}
+
+const Header: React.FC<HeaderProps> = ({ onTopicSelect, selectedTopic }) => {
   const [topics, setTopics] = useState<ITopicData[]>([]);
-  const [showMore, setShowMore] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   // Separate the topics into the first three and the rest
   const firstThreeTopics = topics.slice(0, 3);
   const remainingTopics = topics.slice(3);
+
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  const handleAvatarClick = () => {
+    setDrawerOpen(!drawerOpen);
+  };
 
   useEffect(() => {
     // Get the stored token from local storage
@@ -61,22 +73,30 @@ const Header: React.FC = () => {
   return (
     <div className="p-4 space-y-4">
       <div className="flex items-center space-x-2">
-        {/* User Avatar */}
-        <Avatar sx={{ bgcolor: red[500], fontWeight: 'bold', fontSize: 18 }}>
+        <Avatar
+          sx={{ bgcolor: red[500], fontWeight: 'bold', fontSize: 18 }}
+          onClick={handleAvatarClick}
+        >
           U
         </Avatar>
         <p className="text-base font-semibold text-white">Picked for you</p>
       </div>
 
+      <NavBar drawerOpen={drawerOpen} setDrawerOpen={setDrawerOpen} />
+
       <div className="flex items-center space-x-2">
         {firstThreeTopics.map((topic) => (
           <div
             key={topic.id}
-            className="flex items-center justify-center text-sm text-white py-2 px-4 rounded-full capitalize"
+            className="flex items-center justify-center text-white text-sm py-2 px-4 rounded-full capitalize"
             style={{
+              fontSize: 10,
               height: '36px',
-              backgroundColor: '#424867',
+              backgroundColor:
+                topic.name === selectedTopic ? '#2563EB' : '#424867',
+              lineHeight: '1.2',
             }}
+            onClick={() => onTopicSelect(topic.name)}
           >
             {capitalizeFirstLetter(topic.name)}
           </div>
@@ -108,10 +128,15 @@ const Header: React.FC = () => {
               {remainingTopics.map((topic) => (
                 <MenuItem
                   key={topic.id}
-                  onClick={handleClose}
+                  onClick={() => {
+                    handleClose();
+                    onTopicSelect(topic.name);
+                  }}
                   style={{
-                    fontSize: '0.875rem',
+                    fontSize: '0.7rem',
                     color: '#9ea3b8',
+                    backgroundColor:
+                      topic.name === selectedTopic ? '#2563EB' : 'white',
                   }}
                 >
                   {capitalizeFirstLetter(topic.name)}
@@ -122,12 +147,11 @@ const Header: React.FC = () => {
         )}
       </div>
 
-      {/* Plus Icon wrapped in a circle */}
       {/* <IconButton
         sx={{
           color: 'white',
-          backgroundColor: grey[600],
-          '&:hover': { backgroundColor: grey[600] },
+          backgroundColor: '#424867',
+          '&:hover': { backgroundColor: '#424867' },
           width: 36, // Match size with the Avatar
           height: 36, // Match size with the Avatar
         }}

@@ -1,23 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Header from './Header';
 import SearchBar from './SearchBar';
 import NewsFeed from '../FeedPlayer/NewsFeed';
 
 const HomePage: React.FC = () => {
+  const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
+
+  console.log(`currently selected ${selectedTopic}`);
+
   return (
     <div className="min-h-screen text-white py-4">
-      <Header />
-      {/* <div className="px-4 py-2">
-        <p className="text-xl font-semibold my-4 text-white">
-          Discover something new
-        </p>
-        <SearchBar />
-      </div> */}
+      <Header onTopicSelect={setSelectedTopic} selectedTopic={selectedTopic} />
 
       <div className="px-4">
-        {/* <p className="text-xl font-semibold my-4 text-white">
-          Top stories for you
-        </p> */}
         <NewsFeed />
       </div>
     </div>
