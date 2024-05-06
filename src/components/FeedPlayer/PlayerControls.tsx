@@ -20,6 +20,7 @@ import axios from 'axios';
 interface PlayerControlsProps {
   currentSummary: string | null;
   imageUrl?: string;
+  title?: string;
   onNextClick: () => void;
   onPreviousClick: () => void;
 }
@@ -37,6 +38,7 @@ interface AudioControlState {
 const PlayerControls: React.FC<PlayerControlsProps> = ({
   currentSummary,
   imageUrl,
+  title,
   onNextClick,
   onPreviousClick,
 }) => {
@@ -66,11 +68,10 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
   useEffect(() => {
     // Automatically load and play audio when currentSummary changes
     const loadAndPlayAudio = async () => {
-      if (currentSummary && audioControl.autoplay) {
+      if (currentSummary && audioControl.autoplay && title) {
         // Set loading state and start placeholder audio
         setAudioControl((prev) => ({ ...prev, loading: true }));
         try {
-          // Immediately play placeholder audio
           audioRef.current.src = placeholderAudioUrl;
           audioRef.current.loop = false;
           await audioRef.current
@@ -80,7 +81,7 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
           // Fetch and prepare main audio
           const response = await axios.post(
             'http://localhost:8000/api/generate_audio/',
-            { articleContent: currentSummary },
+            { articleContent: currentSummary, articleTitle: title },
             { responseType: 'blob' },
           );
           const url = URL.createObjectURL(response.data);
@@ -347,7 +348,7 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
   };
 
   // Log the change for debugging or analytics
-  console.log(`Audio is now ${audioControl.muted ? 'muted' : 'unmuted'}.`);
+  // console.log(`Audio is now ${audioControl.muted ? 'muted' : 'unmuted'}.`);
 
   // const styles = {
   //   playerBox: {
