@@ -454,6 +454,7 @@ const NewsFeed: React.FC = () => {
         <PlayerControls
           currentSummary={currentSummary}
           imageUrl={selectedArticle?.image}
+          title={selectedArticle?.title}
           onNextClick={handleNextArticle}
           onPreviousClick={handlePreviousArticle}
         />
