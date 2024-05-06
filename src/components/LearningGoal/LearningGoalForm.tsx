@@ -79,11 +79,8 @@ const LearningGoalForm = () => {
         },
       );
       console.log('Preferences saved successfully:', response.data);
-
-      // navigate('/explore', { state: { hashTag } }); // Navigate on success
     } catch (error) {
       console.error('Error saving preferences:', error);
-      // Handle error
     }
   };
 
@@ -192,7 +189,7 @@ const LearningGoalForm = () => {
     setGeneratedTags(tagsArray);
     console.log(tagsArray);
     //default selection
-    setSelectedTags(new Set(tagsArray.slice(0, 3)));
+    setSelectedTags(new Set(tagsArray.slice(0, 5)));
   };
 
   useEffect(() => {

@@ -9,10 +9,6 @@ import {
   IconButton,
   CardActions,
   CircularProgress,
-  SwipeableDrawer,
-  Popover,
-  Drawer,
-  styled,
 } from '@mui/material';
 import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
@@ -29,20 +25,12 @@ const NewsFeed: React.FC = () => {
   const [articles, setArticles] = useState<IArticle[]>([]);
   const [error, setError] = useState<string>('');
   const [currentSummary, setCurrentSummary] = useState<string | null>(null);
+  const defaultSummary = 'No summary available';
 
   const [selectedArticle, setSelectedArticle] = useState<IArticle | null>(null);
 
   // const [expandedArticleId, setExpandedArticleId] = useState<string | null>(null, );
   const [drawerOpen, setDrawerOpen] = React.useState(false);
-
-  // const toggleSummary = (articleId: string | null) => {
-  //   setExpandedArticleId((currentId) =>
-  //     currentId === articleId ? null : articleId,
-  //   );
-  // };
-  // const toggleDrawer = () => {
-  //   setDrawerOpen(!drawerOpen);
-  // };
 
   interface SummariesType {
     [key: string]: string | undefined;
@@ -128,7 +116,7 @@ const NewsFeed: React.FC = () => {
       const selectedArticle = articles[currentSlide];
       setSelectedArticle(selectedArticle);
       if (selectedArticle) {
-        const summary = summaries[selectedArticle.id];
+        const summary = summaries[selectedArticle.title];
         if (summary !== currentSummary) {
           setCurrentSummary(summary || null);
         }
@@ -138,31 +126,71 @@ const NewsFeed: React.FC = () => {
     },
   };
 
-  const generateSummary = async (articleId: string) => {
-    const article = articles.find((a) => a.id == articleId);
+  const generateSummary = async (articleTitle: string) => {
+    const article = articles.find((a) => a.title === articleTitle);
 
-    if (article && !summaries[articleId]) {
+    if (article) {
       setSelectedArticle(article);
+    }
 
-      console.log(`Generating summary for article ID ${articleId}`);
+    // Check local storage for existing summary before making API call
+    const cachedSummary = localStorage.getItem('summaries');
+    let newSummaries;
+    let parsedSummaries: { [key: string]: string } | null = null;
+    try {
+      if (cachedSummary) {
+        parsedSummaries = JSON.parse(cachedSummary);
+      }
+    } catch (error) {
+      console.error('Error parsing cached summaries:', error);
+    }
+
+    if (
+      parsedSummaries &&
+      parsedSummaries[articleTitle] &&
+      typeof parsedSummaries === 'object' &&
+      !Array.isArray(parsedSummaries)
+    ) {
+      // Access parsedSummaries as an object with string keys and values
+      console.log(`Using cached summary for: ${articleTitle}`);
+      setCurrentSummary(parsedSummaries[articleTitle]);
+      setSummaries((prev) => ({ ...prev, ...parsedSummaries }));
+      return;
+    }
+
+    if (article) {
+      console.log(`Generating summary for article ID ${articleTitle}`);
       try {
         const response = await axios.post(
           'http://localhost:8000/api/generate_summary/',
           { content: article.content },
         );
-        setSummaries((prevSummaries) => ({
-          ...prevSummaries,
-          [articleId]: response.data.generateSummary,
-        }));
 
-        if (selectedArticle && selectedArticle.id === articleId) {
+        if (response) {
+          newSummaries = {
+            ...summaries,
+            [articleTitle]: response.data.generateSummary,
+          };
+          setSummaries(newSummaries);
+          console.log('Summaries to store:', newSummaries); // Verify summaries content
+        }
+
+        // Update local storage here, regardless of success or failure
+        localStorage.setItem(
+          'summaries',
+          JSON.stringify(newSummaries || summaries),
+        );
+
+        if (selectedArticle && selectedArticle.title === articleTitle) {
           setCurrentSummary(response.data.generateSummary);
         }
       } catch (error) {
         console.error('Error generating summary:', error);
       }
     } else {
-      setCurrentSummary(summaries[articleId] ?? null);
+      // Use existing summary from local storage if available
+      const existingSummary = parsedSummaries?.[articleTitle];
+      setCurrentSummary(existingSummary ?? summaries[articleTitle] ?? null);
     }
   };
 
@@ -180,6 +208,9 @@ const NewsFeed: React.FC = () => {
           if (entry.isIntersecting) {
             const articleId = entry.target.getAttribute('data-article-id');
             const articleSummary = entry.target.getAttribute('data-summary');
+            const articleTitle =
+              entry.target.getAttribute('data-article-title');
+
             const currentIndex = articles.findIndex(
               (a) => a.id === selectedArticle?.id,
             );
@@ -188,8 +219,8 @@ const NewsFeed: React.FC = () => {
 
             console.log(`Article ${articleId} is in view.`);
 
-            if (articleId) {
-              generateSummary(articleId);
+            if (articleId && articleTitle) {
+              generateSummary(articleTitle);
               observer.current?.unobserve(entry.target);
             }
           }
@@ -209,7 +240,7 @@ const NewsFeed: React.FC = () => {
     return () => {
       observerInstance.disconnect();
     };
-  }, [articles, summaries, observer]); // Effect will re-run if articles or summaries change
+  }, [articles, observer]); // Effect will re-run if articles or summaries change
 
   const handleSliderInteraction = () => {
     if (audioRef.current) {
@@ -279,7 +310,8 @@ const NewsFeed: React.FC = () => {
               // maxHeight: expandedArticleId === article.id ? '500px' : '300px',
             }}
             data-article-id={article.id}
-            data-summary={summaries[article.id]}
+            data-article-title={article.title}
+            data-summary={summaries[article.title]}
             className="article-card"
             onMouseDown={handleSliderInteraction}
             onTouchStart={handleSliderInteraction}
@@ -287,7 +319,8 @@ const NewsFeed: React.FC = () => {
             <CardMedia
               component="img"
               sx={{
-                height: 140,
+                // height: 140,
+                height: '15vh',
                 borderRadius: '12px',
                 width: '100%',
                 objectFit: 'cover',
@@ -431,8 +464,8 @@ const NewsFeed: React.FC = () => {
                   overflow: drawerOpen ? 'auto' : 'hidden',
                 }}
               >
-                {summaries[selectedArticle.id] ? (
-                  summaries[selectedArticle.id]
+                {summaries[selectedArticle.title] ? (
+                  summaries[selectedArticle.title]
                 ) : (
                   <CircularProgress size={24} />
                 )}
@@ -452,7 +485,9 @@ const NewsFeed: React.FC = () => {
         }}
       >
         <PlayerControls
-          currentSummary={currentSummary}
+          currentSummary={
+            selectedArticle ? summaries[selectedArticle.title] || null : null
+          }
           imageUrl={selectedArticle?.image}
           title={selectedArticle?.title}
           onNextClick={handleNextArticle}
