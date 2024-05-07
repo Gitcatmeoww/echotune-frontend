@@ -57,13 +57,15 @@ const LearningGoalForm = () => {
     isGuest: boolean,
     sessionId: string | null,
     token: string | null,
-    hashTag: string,
+    selectedTags: Set<string>,
+    hashTags: string[],
   ) => {
     const payload = {
       is_guest: isGuest,
       session_id: sessionId,
       topics: Array.from(selectedTags),
       sources: sources,
+      hashtags: hashTags,
     };
 
     console.log('HashTag at savePreferences:', hashTag);
@@ -120,18 +122,15 @@ const LearningGoalForm = () => {
     const sessionId = localStorage.getItem('guestSessionId');
     const token = localStorage.getItem('token');
 
-    const generatedHashtag = await getHashtag(); // Get hashtag and wait for it
+    const generatedHashtag: string = await getHashtag(); // Get hashtag and wait for it
 
     if (generatedHashtag) {
       sethashTag(generatedHashtag); // Set hashtag in state
       // savePreferences(isGuest, sessionId, token, generatedHashtag);
 
-      await savePreferences(
-        checkIfGuest(),
-        localStorage.getItem('guestSessionId'),
-        localStorage.getItem('token'),
+      await savePreferences(isGuest, sessionId, token, selectedTags, [
         generatedHashtag,
-      );
+      ]);
       navigate('/explore', { state: { hashTag: generatedHashtag } }); // Navigate on success with the hashtag
       //     savePreferences(isGuest, sessionId, token, generatedHashtag);
       //   } else {
