@@ -34,7 +34,8 @@ const App = () => {
               <Route path="/preference" element={<PreferencePage />} />
               <Route path="/explore" element={<ExplorePage />} />
               <Route path="/learning-goal" element={<LearningGoalForm />} />
-              <Route path="/newsfeed" element={<NewsFeed />} />
+              {/* <Route path="/newsfeed" element={<NewsFeed />} /> */}
+              <Route path="/newsfeed" element={<HomePage />} />
               <Route path="/home" element={<HomePage />} />
             </Routes>
           </div>

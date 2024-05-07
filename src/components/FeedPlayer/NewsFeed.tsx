@@ -20,8 +20,13 @@ import NorthEastIcon from '@mui/icons-material/NorthEast';
 import PlayerControls from './PlayerControls';
 import CloseIcon from '@mui/icons-material/Close';
 import { IArticle } from '../../interfaces/IArticle';
+import { ITopicData } from '../../interfaces/ITopicData';
 
-const NewsFeed: React.FC = () => {
+interface NewsFeedProps {
+  topics: ITopicData[];
+}
+
+const NewsFeed: React.FC<NewsFeedProps> = ({ topics }) => {
   const [articles, setArticles] = useState<IArticle[]>([]);
   const [error, setError] = useState<string>('');
   const [currentSummary, setCurrentSummary] = useState<string | null>(null);
@@ -47,13 +52,14 @@ const NewsFeed: React.FC = () => {
     const sessionId = localStorage.getItem('guestSessionId');
     const token = localStorage.getItem('token');
 
-    fetchNews(isGuest, sessionId, token);
-  }, []);
+    fetchNews(isGuest, sessionId, token, topics);
+  }, [topics]);
 
   const fetchNews = async (
     isGuest: boolean,
     sessionId: string | null,
     token: string | null,
+    topics: ITopicData[],
   ) => {
     const config: {
       headers: Record<string, string>;
@@ -72,20 +78,40 @@ const NewsFeed: React.FC = () => {
 
     console.log(config);
 
+    const topicsQuery = topics
+      .map((topic) => `"${topic.name.trim()}"`)
+      .join(' OR ');
+
     try {
-      // console.log(config);
       const response = await axios.get(
         'http://localhost:8000/api/fetch_news/',
-        config,
+        {
+          ...config,
+          params: {
+            ...config.params,
+            q: topicsQuery,
+          },
+        },
       );
       setArticles(response.data);
-      // setSelectedArticle(response.data[0] || null);
-      // console.log(response.data[0]);
-      // handleCardSelect(response.data[0]);
     } catch (error) {
       console.error('Error fetching news:', error);
       setError('Failed to fetch news. Please try again later.');
     }
+    // try {
+    //   // console.log(config);
+    //   const response = await axios.get(
+    //     'http://localhost:8000/api/fetch_news/',
+    //     config,
+    //   );
+    //   setArticles(response.data);
+    //   // setSelectedArticle(response.data[0] || null);
+    //   // console.log(response.data[0]);
+    //   // handleCardSelect(response.data[0]);
+    // } catch (error) {
+    //   console.error('Error fetching news:', error);
+    //   setError('Failed to fetch news. Please try again later.');
+    // }
   };
 
   const settings = {
