@@ -45,7 +45,7 @@ const ExplorePage: React.FC = () => {
   // console.log(firstTag);
 
   const handleExplore = () => {
-    navigate('/newsfeed');
+    navigate('/home');
   };
 
   return (
