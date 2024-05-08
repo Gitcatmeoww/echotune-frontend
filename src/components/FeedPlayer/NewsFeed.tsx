@@ -138,6 +138,7 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ topics }) => {
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.currentTime = 0;
+        audioRef.current.src = ''; // Clear the audio source
       }
       const selectedArticle = articles[currentSlide];
       setSelectedArticle(selectedArticle);

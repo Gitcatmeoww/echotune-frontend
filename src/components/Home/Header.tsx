@@ -164,58 +164,58 @@ const Header: React.FC<HeaderProps> = ({
           </div>
         ))}
 
-        {remainingHashtags.length > 0 && (
-          <>
-            <IconButton
-              className="flex items-center justify-center rounded-full"
+        {/* {remainingHashtags.length > 0 && (
+          <> */}
+        <IconButton
+          className="flex items-center justify-center rounded-full"
+          style={{
+            height: '36px',
+            width: '36px',
+            backgroundColor: '#424867',
+          }}
+          onClick={handleMoreClick}
+        >
+          <MoreHorizIcon sx={{ color: 'white' }} />
+        </IconButton>
+
+        <Menu
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl)}
+          onClose={handleClose}
+          MenuListProps={{
+            'aria-labelledby': 'more-button',
+            dense: true,
+          }}
+        >
+          {remainingHashtags.map((hashtag) => (
+            <MenuItem
+              key={hashtag.id}
+              onClick={() => {
+                handleClose();
+                onHashtagSelect(hashtag.name);
+              }}
               style={{
-                height: '36px',
-                width: '36px',
-                backgroundColor: '#424867',
-              }}
-              onClick={handleMoreClick}
-            >
-              <MoreHorizIcon sx={{ color: 'white' }} />
-            </IconButton>
-
-            <Menu
-              anchorEl={anchorEl}
-              open={Boolean(anchorEl)}
-              onClose={handleClose}
-              MenuListProps={{
-                'aria-labelledby': 'more-button',
-                dense: true,
+                fontSize: '0.7rem',
+                color: '#9ea3b8',
+                backgroundColor:
+                  hashtag.name === selectedHashtag ? '#2563EB' : 'white',
               }}
             >
-              {remainingHashtags.map((hashtag) => (
-                <MenuItem
-                  key={hashtag.id}
-                  onClick={() => {
-                    handleClose();
-                    onHashtagSelect(hashtag.name);
-                  }}
-                  style={{
-                    fontSize: '0.7rem',
-                    color: '#9ea3b8',
-                    backgroundColor:
-                      hashtag.name === selectedHashtag ? '#2563EB' : 'white',
-                  }}
-                >
-                  {capitalizeFirstLetter(hashtag.name)}
-                </MenuItem>
-              ))}
-            </Menu>
+              {capitalizeFirstLetter(hashtag.name)}
+            </MenuItem>
+          ))}
+        </Menu>
 
-            <HashtagDrawer
-              open={hashtagDrawerOpen}
-              onClose={handleHashtagDrawerClose}
-              hashtags={hashtags}
-              onHashtagSelect={handleHashtagSelection}
-              selectedHashtag={selectedHashtag}
-              onDeleteHashtag={handleDeleteHashtag}
-            />
-          </>
-        )}
+        <HashtagDrawer
+          open={hashtagDrawerOpen}
+          onClose={handleHashtagDrawerClose}
+          hashtags={hashtags}
+          onHashtagSelect={handleHashtagSelection}
+          selectedHashtag={selectedHashtag}
+          onDeleteHashtag={handleDeleteHashtag}
+        />
+        {/* </>
+        )} */}
       </div>
     </div>
   );
