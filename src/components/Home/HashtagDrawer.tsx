@@ -109,6 +109,12 @@ const HashtagDrawer: React.FC<HashtagDrawerProps> = ({
     setExpandedTab(null); // Close the expanded tab if open
   };
 
+  const handleHashtagClick = (hashtag: string) => {
+    if (onHashtagSelect) {
+      onHashtagSelect(hashtag);
+    }
+  };
+
   return (
     <CustomDrawer anchor="right" open={open} onClose={onClose}>
       <div className="flex items-center justify-between p-4">
@@ -124,11 +130,14 @@ const HashtagDrawer: React.FC<HashtagDrawerProps> = ({
       <List>
         {localHashtags.map((hashtag) => (
           <React.Fragment key={hashtag.id}>
-            <ListItem button onClick={() => onHashtagSelect(hashtag.name)}>
+            <ListItem button onClick={() => handleHashtagClick(hashtag.name)}>
               <TabItemBox>
                 <CustomListItemText primary={hashtag.name} />
                 <IconButton
-                  onClick={(event) => toggleExpand(event, hashtag.name)}
+                  onClick={(event) => {
+                    event.stopPropagation(); // Prevent drawer from closing if clicking the icon
+                    toggleExpand(event, hashtag.name);
+                  }}
                 >
                   <MoreHorizIcon style={{ color: '#9ea3b8' }} />
                 </IconButton>

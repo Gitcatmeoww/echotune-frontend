@@ -49,6 +49,11 @@ const Header: React.FC<HeaderProps> = ({
     );
   };
 
+  const handleHashtagSelection = (hashtag: string) => {
+    onHashtagSelect(hashtag);
+    handleHashtagDrawerClose();
+  };
+
   const handleAvatarClick = () => {
     setDrawerOpen(!drawerOpen);
   };
@@ -176,7 +181,7 @@ const Header: React.FC<HeaderProps> = ({
               open={hashtagDrawerOpen}
               onClose={handleHashtagDrawerClose}
               hashtags={hashtags}
-              onHashtagSelect={onHashtagSelect}
+              onHashtagSelect={handleHashtagSelection}
               selectedHashtag={selectedHashtag}
               onDeleteHashtag={handleDeleteHashtag}
             />
