@@ -12,6 +12,7 @@ import MenuItem from '@mui/material/MenuItem';
 import { ResponsiveText } from 'react-responsive-text';
 import NavBar from './NavBar';
 import { useNavigate } from 'react-router-dom';
+import HashtagDrawer from './HashtagDrawer';
 
 // interface HeaderProps {
 //   onTopicSelect: (topic: string) => void;
@@ -41,6 +42,15 @@ const Header: React.FC<HeaderProps> = ({
   const remainingHashtags = hashtags.slice(3);
 
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [hashtagDrawerOpen, setHashtagDrawerOpen] = useState(false);
+
+  const handleHashtagDrawerOpen = () => {
+    setHashtagDrawerOpen(true);
+  };
+
+  const handleHashtagDrawerClose = () => {
+    setHashtagDrawerOpen(false);
+  };
 
   const handleAvatarClick = () => {
     setDrawerOpen(!drawerOpen);
@@ -107,8 +117,12 @@ const Header: React.FC<HeaderProps> = ({
     return string.charAt(0).toUpperCase() + string.slice(1);
   };
 
+  // const handleMoreClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+  //   setAnchorEl(event.currentTarget);
+  // };
+
   const handleMoreClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(event.currentTarget);
+    handleHashtagDrawerOpen(); // Open the drawer when MoreHorizIcon is clicked
   };
 
   const handleClose = () => {
@@ -254,6 +268,14 @@ const Header: React.FC<HeaderProps> = ({
                 </MenuItem>
               ))}
             </Menu>
+
+            <HashtagDrawer
+              open={hashtagDrawerOpen}
+              onClose={handleHashtagDrawerClose}
+              hashtags={hashtags}
+              onHashtagSelect={onHashtagSelect}
+              selectedHashtag={selectedHashtag}
+            />
           </>
         )}
       </div>
