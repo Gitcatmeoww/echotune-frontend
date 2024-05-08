@@ -8,11 +8,15 @@ const LandingPage: React.FC = () => {
   const navigate = useNavigate();
 
   const [showLoginForm, setShowLoginForm] = useState(false);
+  const [showRegistrationForm, setshowRegistrationForm] = useState(true);
+
   const [loginData, setLoginData] = useState({ username: '', password: '' });
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setLoginData({ ...loginData, [event.target.name]: event.target.value });
   };
+
+  const placeholderLogoUrl = `${process.env.PUBLIC_URL}/logo192.png`;
 
   const handleSubmitLogin = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -31,6 +35,7 @@ const LandingPage: React.FC = () => {
 
   const handleLogin = () => {
     setShowLoginForm(true); // Toggle the display of the login form
+    setshowRegistrationForm(false);
   };
 
   const handleGuest = () => {
@@ -48,54 +53,64 @@ const LandingPage: React.FC = () => {
 
   return (
     <div className="flex flex-col items-center justify-center h-screen px-4">
+      {/* <div className="text-center text-red-500 mb-4 flex flex-col items-center justify-center">
+        <img src={placeholderLogoUrl} alt="Your company logo" />{' '}
+      </div> */}
       <div className="w-full max-w-md">
-        <RegistrationForm />
-        <div className="my-8">
-          <hr className="my-2" />
-          <div className="text-center text-gray-500 mb-2">or</div>
-        </div>
-        {showLoginForm ? (
-          <form onSubmit={handleSubmitLogin} className="mb-4">
-            <input
-              type="text"
-              name="username"
-              value={loginData.username}
-              onChange={handleInputChange}
-              placeholder="Username"
-              required
-              className="bg-inherit shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-500 leading-tight focus:outline-none focus:shadow-outline mb-4"
-            />
-            <input
-              type="password"
-              name="password"
-              value={loginData.password}
-              onChange={handleInputChange}
-              placeholder="Password"
-              required
-              className="bg-inherit shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-500 leading-tight focus:outline-none focus:shadow-outline mb-4"
-            />
-            <button
-              type="submit"
-              className="bg-blue-700 text-white w-full hover:bg-gray-800 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-            >
-              Log in
-            </button>
-          </form>
-        ) : (
+        {showRegistrationForm && ( // Wrap both elements
+          <>
+            <RegistrationForm />
+            <div className="my-8">
+              <hr className="my-2" />
+              <div className="text-center text-gray-400 mb-2">or</div>
+            </div>
+          </>
+        )}
+
+        {/* Closing tag for the outer div */}
+      </div>
+      {showLoginForm ? (
+        <form onSubmit={handleSubmitLogin} className="mb-4">
+          <input
+            type="text"
+            name="username"
+            value={loginData.username}
+            onChange={handleInputChange}
+            placeholder="Username"
+            required
+            className="bg-inherit shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-500 leading-tight focus:outline-none focus:shadow-outline mb-4"
+          />
+          <input
+            type="password"
+            name="password"
+            value={loginData.password}
+            onChange={handleInputChange}
+            placeholder="Password"
+            required
+            className="bg-inherit shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-500 leading-tight focus:outline-none focus:shadow-outline mb-4"
+          />
           <button
-            onClick={handleLogin}
-            className="bg-transparent text-white hover:text-gray-800 font-semibold py-2 px-4 border border-gray-300 rounded w-full mb-4"
+            type="submit"
+            className="bg-blue-700 text-white w-full hover:bg-gray-800 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
           >
             Log in
           </button>
-        )}
+        </form>
+      ) : (
         <button
-          onClick={handleGuest}
-          className="bg-transparent text-white hover:text-gray-800 font-semibold py-2 px-4 border border-gray-300 rounded w-full"
+          onClick={handleLogin}
+          className="bg-transparent text-white hover:text-gray-800 font-semibold py-2 px-4 border border-gray-300 rounded w-full mb-4"
         >
-          Join as a guest
+          Log in
         </button>
-      </div>
+      )}
+      <button
+        onClick={handleGuest}
+        className="bg-transparent text-white hover:text-gray-800 font-semibold py-2 px-4 border border-gray-300 rounded w-full"
+      >
+        Join as a guest
+      </button>
+      {/* </div> */}
     </div>
     // <div className="flex flex-col items-center justify-center h-screen bg-white px-4">
     //   <div className="w-full max-w-md">
