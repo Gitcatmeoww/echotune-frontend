@@ -17,6 +17,7 @@ import HashtagDrawer from './HashtagDrawer';
 interface HeaderProps {
   onHashtagSelect: (hashtag: string) => void;
   selectedHashtag: string | null;
+  onHashtagsFetched?: (hashtags: IHashtagData[]) => void;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -71,12 +72,14 @@ const Header: React.FC<HeaderProps> = ({
           const response = await axios.get(
             'http://localhost:8000/api/get_user_hashtags/',
             {
-              headers: {
-                Authorization: `Token ${token}`,
-              },
+              headers: { Authorization: `Token ${token}` },
             },
           );
           setHashtags(response.data);
+
+          if (response.data.length > 0 && !selectedHashtag) {
+            onHashtagSelect(response.data[0].name); // Automatically select the first hashtag
+          }
         } catch (error) {
           console.error('Error fetching hashtags:', error);
         }
@@ -86,7 +89,33 @@ const Header: React.FC<HeaderProps> = ({
     };
 
     fetchHashtags();
-  }, []);
+  }, [selectedHashtag]);
+
+  // useEffect(() => {
+  //   const token = localStorage.getItem('token');
+
+  //   const fetchHashtags = async () => {
+  //     if (token) {
+  //       try {
+  //         const response = await axios.get(
+  //           'http://localhost:8000/api/get_user_hashtags/',
+  //           {
+  //             headers: {
+  //               Authorization: `Token ${token}`,
+  //             },
+  //           },
+  //         );
+  //         setHashtags(response.data);
+  //       } catch (error) {
+  //         console.error('Error fetching hashtags:', error);
+  //       }
+  //     } else {
+  //       console.log('No token found');
+  //     }
+  //   };
+
+  //   fetchHashtags();
+  // }, []);
 
   const capitalizeFirstLetter = (string: string) => {
     return string.charAt(0).toUpperCase() + string.slice(1);
