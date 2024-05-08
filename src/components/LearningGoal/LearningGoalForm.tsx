@@ -300,33 +300,33 @@ const LearningGoalForm = () => {
             style={exampleStyle}
             onClick={() =>
               handleExampleClick(
-                'I want to learn about top product updates in the generative AI space',
+                'I want to learn about latest development in Generative AI and Tech startups',
               )
             }
           >
-            I want to learn about top product updates in the generative AI space{' '}
-            <NorthWestIcon />
+            I want to learn about latest development in Generative AI and Tech
+            startups <NorthWestIcon />
           </div>
           <div
             className="example"
             style={exampleStyle}
             onClick={() =>
-              handleExampleClick('What is Billie Eilish up to these days?')
+              handleExampleClick('What is Taylor Swift up to these days?')
             }
           >
-            What is Billie Eilish up to these days? <NorthWestIcon />
+            What is Taylor Swift up to these days? <NorthWestIcon />
           </div>
           <div
             className="example"
             style={exampleStyle}
             onClick={() =>
               handleExampleClick(
-                'I want to learn about bird species in the Caribbean Islands',
+                'I wanna keep up with Nike sneaker releases, especially the Air Jordans',
               )
             }
           >
-            I want to learn about bird species in the Caribbean Islands{' '}
-            <NorthWestIcon />
+            I wanna keep up with Nike sneaker releases, especially the Air
+            Jordans <NorthWestIcon />
           </div>
           <div
             className="example"
