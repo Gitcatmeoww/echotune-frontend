@@ -12,6 +12,7 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { LearningGoalProvider } from '../contexts/LearningGoalContext';
 import HomePage from './Home/HomePage';
+import LogoPage from './Landing/LogoPage';
 
 const theme = createTheme({
   palette: {
@@ -29,7 +30,8 @@ const App = () => {
         <Router>
           <div>
             <Routes>
-              <Route path="/" element={<LandingPage />} />
+              <Route path="/" element={<LogoPage />} />
+              <Route path="/landing" element={<LandingPage />} />
               <Route path="/register" element={<RegistrationForm />} />
               <Route path="/preference" element={<PreferencePage />} />
               <Route path="/explore" element={<ExplorePage />} />
