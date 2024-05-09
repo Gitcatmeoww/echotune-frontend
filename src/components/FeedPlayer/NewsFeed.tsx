@@ -13,6 +13,8 @@ import {
 import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
+import './slick2.css';
+
 import ThumbUpOffAltIcon from '@mui/icons-material/ThumbUpOffAlt';
 import ThumbDownOffAltIcon from '@mui/icons-material/ThumbDownOffAlt';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
@@ -30,11 +32,13 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ topics }) => {
   const [articles, setArticles] = useState<IArticle[]>([]);
   const [error, setError] = useState<string>('');
   const [currentSummary, setCurrentSummary] = useState<string | null>(null);
-  const defaultSummary = 'No summary available';
+  const [SummaryGenerated, setSummaryGenerated] = React.useState(false);
+  const [summaryList, setSummaryList] = useState<Map<string, string>>(
+    new Map(),
+  );
+  const summaryRequestedRef = useRef(new Set());
 
-  const [selectedArticle, setSelectedArticle] = useState<IArticle | null>(null);
-
-  // const [expandedArticleId, setExpandedArticleId] = useState<string | null>(null, );
+  const [selectedArticle, setSelectedArticle] = useState<IArticle | null>(null); // Initial value is null
   const [drawerOpen, setDrawerOpen] = React.useState(false);
 
   interface SummariesType {
@@ -51,9 +55,215 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ topics }) => {
     const isGuest = !!localStorage.getItem('guestSessionId');
     const sessionId = localStorage.getItem('guestSessionId');
     const token = localStorage.getItem('token');
+    const loadArticles = async () => {
+      try {
+        const articles = (await fetchNews(
+          isGuest,
+          sessionId,
+          token,
+          topics,
+        )) as IArticle[];
 
-    fetchNews(isGuest, sessionId, token, topics);
+        setArticles(articles);
+
+        if (articles.length > 0) {
+          console.log("I'm here");
+          console.log(articles[0].title);
+
+          const summaryPromise = generateSummary(articles[0].title);
+          console.log(summaryPromise);
+        }
+      } catch (error) {
+        console.error('Failed to load articles:', error);
+        console.log('Failed to load articles:', error);
+      }
+    };
+
+    loadArticles();
   }, [topics]);
+
+  // useEffect(() => {
+  //   console.log(SummaryGenerated);
+  //   const getSummaries = async () => {
+  //     await Promise.all(
+  //       articles.map(async (article) => {
+  //         await generateSummary(article.title);
+  //       }),
+  //     );
+  //     setSummaryGenerated(true);
+  //   };
+  //   // if (SummaryGenerated) {
+  //   getSummaries();
+  //   // setSummaryGenerated(true);
+  //   // }
+  // }, [articles]);
+  // useEffect(() => {
+  //   async function getSummariesForMissing() {
+  //     let updatesNeeded = false;
+  //     const newSummaryList = new Map(summaryList);
+
+  //     for (const article of articles) {
+  //       const articleTitle = article.title;
+  //       if (
+  //         !newSummaryList.has(articleTitle) &&
+  //         !summaryRequestedRef.current.has(articleTitle)
+  //       ) {
+  //         console.log('Summary missing for:', articleTitle);
+  //         summaryRequestedRef.current.add(articleTitle);
+
+  //         const summary = await generateSummary(articleTitle);
+  //         if (summary) {
+  //           newSummaryList.set(articleTitle, summary);
+  //           updatesNeeded = true;
+  //         }
+  //       }
+  //     }
+
+  //     if (updatesNeeded) {
+  //       console.log('Updating summary list with new summaries', newSummaryList);
+  //       setSummaryList(newSummaryList); // Update the state in one go
+  //       setSummaryGenerated(true);
+  //     }
+
+  //     // if (updatesNeeded) {
+  //     //   setSummaryList(newSummaryList);
+  //     //   setSummaryGenerated(true);
+  //     // }
+  //   }
+
+  //   if (articles.length > 0) {
+  //     getSummariesForMissing();
+  //   }
+  // }, [articles]);
+
+  // useEffect(() => {
+  //   async function getSummariesForMissing() {
+  //     for (const article of articles) {
+  //       const articleTitle = article.title;
+  //       if (
+  //         !summaryList.has(articleTitle) &&
+  //         !summaryRequestedRef.current.has(articleTitle)
+  //       ) {
+  //         console.log('Summary missing for:', articleTitle);
+  //         summaryRequestedRef.current.add(articleTitle);
+  //         const summary = await generateSummary(articleTitle);
+  //         if (summary) {
+  //           setSummaryList((prevSummaryList) => {
+  //             const updatedSummaryList = new Map(prevSummaryList);
+  //             updatedSummaryList.set(articleTitle, summary);
+  //             return updatedSummaryList;
+  //           });
+  //         }
+  //       }
+  //     }
+  //     setSummaryGenerated(true);
+  //   }
+
+  //   if (articles.length > 0) {
+  //     getSummariesForMissing();
+  //   }
+  // }, [articles]);
+
+  useEffect(() => {
+    async function getSummariesForMissing() {
+      for (const article of articles) {
+        const articleTitle = article.title;
+
+        if (
+          !summaryList.has(articleTitle) &&
+          !summaryRequestedRef.current.has(articleTitle) &&
+          !localStorage.getItem(`summary_${articleTitle}`)
+        ) {
+          console.log('Summary missing for:', articleTitle);
+          summaryRequestedRef.current.add(articleTitle);
+          const summary = await generateSummary(articleTitle);
+
+          if (summary) {
+            setSummaryList((prevSummaryList) => {
+              const updatedSummaryList = new Map(prevSummaryList);
+              updatedSummaryList.set(articleTitle, summary);
+              return updatedSummaryList;
+            });
+
+            // Store the summary in localStorage
+            localStorage.setItem(`summary_${articleTitle}`, summary);
+          }
+        } else if (localStorage.getItem(`summary_${articleTitle}`)) {
+          // If summary is available in localStorage, add it to the summaryList
+          const localStorageSummary = localStorage.getItem(
+            `summary_${articleTitle}`,
+          );
+          if (localStorageSummary) {
+            setSummaryList((prevSummaryList) => {
+              const updatedSummaryList = new Map(prevSummaryList);
+              const localStorageSummary = localStorage.getItem?.(
+                `summary_${articleTitle}`,
+              );
+
+              updatedSummaryList.set(articleTitle, localStorageSummary ?? '');
+              return updatedSummaryList;
+            });
+          }
+        }
+      }
+
+      setSummaryGenerated(true);
+    }
+
+    getSummariesForMissing();
+  }, [articles]);
+
+  // useEffect(() => {
+  //   if (articles) {
+  //     const getSummariesForMissing = async () => {
+  //       for (const article of articles) {
+  //         const articleTitle = article.title;
+  //         // generateSummary(articleTitle);
+  //         console.log('summaryList', summaryList);
+
+  //         const summaryListArray = Array.from(summaryList);
+  //         console.log(summaryListArray);
+  //         if (summaryList.has(articleTitle)) {
+  //           console.log('GOTCHA');
+  //         } else {
+  //           console.log('didnt find summary:', articleTitle);
+  //           await generateSummary(articleTitle);
+  //         }
+  //       }
+  //       setSummaryGenerated(true);
+  //     };
+  //     getSummariesForMissing();
+  //   }
+  // }, [articles]);
+
+  //   const isGuest = !!localStorage.getItem('guestSessionId');
+  //   const sessionId = localStorage.getItem('guestSessionId');
+  //   const token = localStorage.getItem('token');
+
+  //   const loadArticles = async () => {
+  //     try {
+  //       const articles = (await fetchNews(
+  //         isGuest,
+  //         sessionId,
+  //         token,
+  //         topics,
+  //       )) as IArticle[];
+
+  //       setArticles(articles);
+
+  //       // Generate summaries for each article
+  //       await Promise.all(
+  //         articles.map(async (article) => {
+  //           await generateSummary(article.title);
+  //         }),
+  //       );
+  //     } catch (error) {
+  //       console.error('Failed to load articles:', error);
+  //     }
+  //   };
+
+  //   loadArticles();
+  // }, [topics]);
 
   const fetchNews = async (
     isGuest: boolean,
@@ -81,7 +291,6 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ topics }) => {
     const topicsQuery = topics
       .map((topic) => `"${topic.name.trim()}"`)
       .join(' OR ');
-
     try {
       const response = await axios.get(
         'http://localhost:8000/api/fetch_news/',
@@ -90,28 +299,18 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ topics }) => {
           params: {
             ...config.params,
             q: topicsQuery,
+            max: 10,
           },
         },
       );
-      setArticles(response.data);
+
+      console.log(response.data);
+      return response.data;
     } catch (error) {
+      console.log('Error fetching news:', error);
       console.error('Error fetching news:', error);
       setError('Failed to fetch news. Please try again later.');
     }
-    // try {
-    //   // console.log(config);
-    //   const response = await axios.get(
-    //     'http://localhost:8000/api/fetch_news/',
-    //     config,
-    //   );
-    //   setArticles(response.data);
-    //   // setSelectedArticle(response.data[0] || null);
-    //   // console.log(response.data[0]);
-    //   // handleCardSelect(response.data[0]);
-    // } catch (error) {
-    //   console.error('Error fetching news:', error);
-    //   setError('Failed to fetch news. Please try again later.');
-    // }
   };
 
   const settings = {
@@ -123,22 +322,11 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ topics }) => {
     slidesToScroll: 1,
     adaptiveHeight: true,
     centerMode: true,
-    // width: '200px !important',
-
-    // const settings = {
-    //   dots: false,
-    //   infinite: true,
-    //   speed: 500,
-    //   slidesToShow: 1,
-    //   slidesToScroll: 1,
-    //   adaptiveHeight: false,
-    //   width: '200px!important',
 
     afterChange: (currentSlide: number) => {
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.currentTime = 0;
-        audioRef.current.src = ''; // Clear the audio source
       }
       const selectedArticle = articles[currentSlide];
       setSelectedArticle(selectedArticle);
@@ -153,81 +341,89 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ topics }) => {
     },
   };
 
+  // const generateSummary = async (articleTitle: string) => {
+  //   const article = articles.find((a) => a.title === articleTitle);
+  //   if (summaryList.has(articleTitle)) {
+  //     console.log(`Summary already generated for: ${articleTitle}`);
+  //     return;
+  //   }
+  //   // if (article) {
+  //   //   setSelectedArticle(article);
+  //   // }
+
+  //   // Check if the summary is already present in the summaryList
+  //   // const existingSummary = summaryList[articleTitle];
+  //   const existingSummary = summaryList.get(articleTitle);
+  //   if (existingSummary) {
+  //     return;
+  //   }
+
+  //   // Check local storage for existing summary before making API call
+  //   const cachedSummary = localStorage.getItem(`summary_${articleTitle}`);
+  //   if (cachedSummary) {
+  //     // setSummaryList(
+  //     //   (prevSummaryList) =>
+  //     //     new Map(prevSummaryList.set(articleTitle, cachedSummary)),
+  //     // );
+  //     setSummaryList((prevSummaryList) =>
+  //       new Map(prevSummaryList).set(articleTitle, cachedSummary),
+  //     );
+
+  //     // setSummaryList((prevSummaryList) => {
+  //     //   const updatedSummaryList = new Map(prevSummaryList);
+  //     //   updatedSummaryList.set(articleTitle, cachedSummary);
+  //     //   return updatedSummaryList;
+  //     // });
+
+  //     return;
+  //   }
+
+  //   if (article) {
+  //     try {
+  //       const response = await axios.post(
+  //         'http://localhost:8000/api/generate_summary/',
+  //         { content: article.content },
+  //       );
+  //       if (response) {
+  //         const newSummary = response.data.generateSummary;
+  //         localStorage.setItem(`summary_${articleTitle}`, newSummary);
+  //         console.log('inside GS nowwww', summaryList);
+
+  //         setSummaryList((prevSummaryList) => {
+  //           const updatedSummaryList = new Map(prevSummaryList);
+  //           updatedSummaryList.set(articleTitle, newSummary);
+  //           console.log(prevSummaryList);
+  //           console.log(summaryList);
+  //           return updatedSummaryList;
+  //         });
+  //       }
+  //     } catch (error) {
+  //       console.error('Error generating summary:', error);
+  //     }
+  //   }
+  // };
   const generateSummary = async (articleTitle: string) => {
     const article = articles.find((a) => a.title === articleTitle);
+    if (!article) return null;
 
-    if (article) {
-      setSelectedArticle(article);
-    }
-
-    // Check local storage for existing summary before making API call
-    const cachedSummary = localStorage.getItem('summaries');
-    let newSummaries;
-    let parsedSummaries: { [key: string]: string } | null = null;
     try {
-      if (cachedSummary) {
-        parsedSummaries = JSON.parse(cachedSummary);
+      const response = await axios.post(
+        'http://localhost:8000/api/generate_summary/',
+        { content: article.content },
+      );
+      if (response.data) {
+        const newSummary = response.data.generateSummary;
+        localStorage.setItem(`summary_${articleTitle}`, newSummary);
+        return newSummary;
       }
     } catch (error) {
-      console.error('Error parsing cached summaries:', error);
-    }
-
-    if (
-      parsedSummaries &&
-      parsedSummaries[articleTitle] &&
-      typeof parsedSummaries === 'object' &&
-      !Array.isArray(parsedSummaries)
-    ) {
-      // Access parsedSummaries as an object with string keys and values
-      console.log(`Using cached summary for: ${articleTitle}`);
-      setCurrentSummary(parsedSummaries[articleTitle]);
-      setSummaries((prev) => ({ ...prev, ...parsedSummaries }));
-      return;
-    }
-
-    if (article) {
-      console.log(`Generating summary for article ID ${articleTitle}`);
-      try {
-        const response = await axios.post(
-          'http://localhost:8000/api/generate_summary/',
-          { content: article.content },
-        );
-
-        if (response) {
-          newSummaries = {
-            ...summaries,
-            [articleTitle]: response.data.generateSummary,
-          };
-          setSummaries(newSummaries);
-          console.log('Summaries to store:', newSummaries); // Verify summaries content
-        }
-
-        // Update local storage here, regardless of success or failure
-        localStorage.setItem(
-          'summaries',
-          JSON.stringify(newSummaries || summaries),
-        );
-
-        if (selectedArticle && selectedArticle.title === articleTitle) {
-          setCurrentSummary(response.data.generateSummary);
-        }
-      } catch (error) {
-        console.error('Error generating summary:', error);
-      }
-    } else {
-      // Use existing summary from local storage if available
-      const existingSummary = parsedSummaries?.[articleTitle];
-      setCurrentSummary(existingSummary ?? summaries[articleTitle] ?? null);
+      console.error('Error generating summary:', error);
+      return null;
     }
   };
 
-  // useEffect(() => {
-  //   console.log('Current Summary:', currentSummary);
-  // }, [currentSummary]);
-
   useEffect(() => {
     const articleCards = document.querySelectorAll('.article-card');
-    // console.log(articleCards);
 
     const observerInstance = new IntersectionObserver(
       (entries) => {
@@ -238,16 +434,22 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ topics }) => {
             const articleTitle =
               entry.target.getAttribute('data-article-title');
 
-            const currentIndex = articles.findIndex(
-              (a) => a.id === selectedArticle?.id,
-            );
+            if (articles.length > 0) {
+              const currentIndex = articles.findIndex(
+                (a) => a.id === selectedArticle?.id,
+              );
 
-            setSelectedArticle(articles[currentIndex]);
+              setSelectedArticle(articles[currentIndex]);
+            }
 
             console.log(`Article ${articleId} is in view.`);
 
             if (articleId && articleTitle) {
-              generateSummary(articleTitle);
+              const selectedArticle = articles.find(
+                (a) => a.title === articleTitle,
+              ) as IArticle;
+              setSelectedArticle(selectedArticle);
+              console.log('selectedArticle', selectedArticle);
               observer.current?.unobserve(entry.target);
             }
           }
@@ -323,22 +525,17 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ topics }) => {
             key={article.id}
             sx={{
               position: 'relative',
-              // height: expandedArticleId === article.id ? '100vh' : 'auto', // Adjust the height dynamically
               transition: 'height 0.5s ease',
-              // width: '200px!important',
-              // maxWidth: '300px', // Adjust this value to control the card width
               padding: '20px',
-
+              borderRadius: '12px',
               height: 385,
-              // margin: '10px',
               color: 'success.dark',
               bgcolor: '#1E2235',
               opacity: drawerOpen ? 0.2 : 1,
-              // maxHeight: expandedArticleId === article.id ? '500px' : '300px',
             }}
             data-article-id={article.id}
             data-article-title={article.title}
-            data-summary={summaries[article.title]}
+            data-summary={summaryList.get(article.title)}
             className="article-card"
             onMouseDown={handleSliderInteraction}
             onTouchStart={handleSliderInteraction}
@@ -346,9 +543,8 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ topics }) => {
             <CardMedia
               component="img"
               sx={{
-                // height: 140,
                 height: '15vh',
-                borderRadius: '12px',
+                borderRadius: '4px',
                 width: '100%',
                 objectFit: 'cover',
               }}
@@ -391,16 +587,11 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ topics }) => {
                 </Box>
               </Typography>
             </CardContent>
-            {/* <CardActions
-              sx={{
-                justifyContent: 'flex-end',
-                marginRight: '15px',
-              }}
-            > */}
+
             <CardActions
               sx={{
                 justifyContent: 'flex-end',
-                position: 'absolute', // Position it absolutely within the relative parent Card
+                position: 'absolute',
                 bottom: 20,
                 right: 20,
                 bgcolor: '#252A41',
@@ -412,7 +603,7 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ topics }) => {
               <Box
                 sx={{
                   display: 'flex',
-                  gap: '5px', // Spacing between each button
+                  gap: '5px',
                 }}
               >
                 <IconButton aria-label="like" style={{ color: 'white' }}>
@@ -437,12 +628,9 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ topics }) => {
         ))}
       </Slider>
 
-      {/* {selectedArticle && ( */}
-      {/* <Card sx={{ bgcolor: '#1E2235' }}> */}
       {selectedArticle && (
-        // <Card sx={{ bgcolor: '#1E2235', position: 'relative' }}>
         <Box sx={{ position: 'relative' }}>
-          <Card sx={{ bgcolor: '#1E2235' }}>
+          <Card sx={{ bgcolor: '#1E2235', marginTop: '7vh' }}>
             <Box
               sx={{
                 position: 'absolute',
@@ -491,8 +679,8 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ topics }) => {
                   overflow: drawerOpen ? 'auto' : 'hidden',
                 }}
               >
-                {summaries[selectedArticle.title] ? (
-                  summaries[selectedArticle.title]
+                {selectedArticle && summaryList.get(selectedArticle.title) ? (
+                  summaryList.get(selectedArticle.title)
                 ) : (
                   <CircularProgress size={24} />
                 )}
@@ -508,13 +696,17 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ topics }) => {
           bottom: 0,
           left: 0,
           right: 0,
-          zIndex: 1100, // Make sure this is higher than other elements
+          zIndex: 1100,
+          top: '85vh',
         }}
       >
         <PlayerControls
-          currentSummary={
-            selectedArticle ? summaries[selectedArticle.title] || null : null
+          currSummary={
+            selectedArticle
+              ? summaryList.get(selectedArticle.title) || null
+              : null
           }
+          summaryGenerated={SummaryGenerated}
           imageUrl={selectedArticle?.image}
           title={selectedArticle?.title}
           onNextClick={handleNextArticle}

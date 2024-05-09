@@ -30,8 +30,8 @@ const Header: React.FC<HeaderProps> = ({
   const [hashtags, setHashtags] = useState<IHashtagData[]>([]);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
-  const firstThreeHashtags = hashtags.slice(0, 3);
-  const remainingHashtags = hashtags.slice(3);
+  const firstThreeHashtags = hashtags.slice(0, 2);
+  const remainingHashtags = hashtags.slice(2);
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [hashtagDrawerOpen, setHashtagDrawerOpen] = useState(false);

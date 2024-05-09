@@ -16,7 +16,7 @@ const LandingPage: React.FC = () => {
     setLoginData({ ...loginData, [event.target.name]: event.target.value });
   };
 
-  const placeholderLogoUrl = `${process.env.PUBLIC_URL}/logo192.png`;
+  const placeholderLogoUrl = `${process.env.PUBLIC_URL}/EchoTune_logo.svg`;
 
   const handleSubmitLogin = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -53,9 +53,13 @@ const LandingPage: React.FC = () => {
 
   return (
     <div className="flex flex-col items-center justify-center h-screen px-4">
-      {/* <div className="text-center text-red-500 mb-4 flex flex-col items-center justify-center">
-        <img src={placeholderLogoUrl} alt="Your company logo" />{' '}
-      </div> */}
+      <div className="fixed top-10 left-0 right-0 z-10 text-center text-red-500 mb-5 flex flex-col items-center justify-center">
+        <img
+          src={placeholderLogoUrl}
+          alt="Echotune"
+          style={{ height: '10vh' }}
+        />{' '}
+      </div>
       <div className="w-full max-w-md">
         {showRegistrationForm && ( // Wrap both elements
           <>
@@ -78,7 +82,7 @@ const LandingPage: React.FC = () => {
             onChange={handleInputChange}
             placeholder="Username"
             required
-            className="bg-inherit shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-500 leading-tight focus:outline-none focus:shadow-outline mb-4"
+            className="bg-inherit shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-500 leading-tight focus:outline-none focus:shadow-outline mb-4 placeholder:text-gray-600"
           />
           <input
             type="password"
@@ -87,7 +91,7 @@ const LandingPage: React.FC = () => {
             onChange={handleInputChange}
             placeholder="Password"
             required
-            className="bg-inherit shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-500 leading-tight focus:outline-none focus:shadow-outline mb-4"
+            className="bg-inherit shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-500 leading-tight focus:outline-none focus:shadow-outline mb-4 placeholder:text-gray-600"
           />
           <button
             type="submit"
@@ -112,27 +116,6 @@ const LandingPage: React.FC = () => {
       </button>
       {/* </div> */}
     </div>
-    // <div className="flex flex-col items-center justify-center h-screen bg-white px-4">
-    //   <div className="w-full max-w-md">
-    //     <RegistrationForm />
-    //     <div className="my-8">
-    //       <hr className="my-2" />
-    //       <div className="text-center text-gray-500 mb-2">or</div>
-    //     </div>
-    //     <button
-    //       onClick={handleLogin}
-    //       className="bg-transparent text-black hover:text-gray-800 font-semibold py-2 px-4 border border-gray-300 rounded w-full mb-4"
-    //     >
-    //       Log in
-    //     </button>
-    //     <button
-    //       onClick={handleGuest}
-    //       className="bg-transparent text-black hover:text-gray-800 font-semibold py-2 px-4 border border-gray-300 rounded w-full"
-    //     >
-    //       Join as a guest
-    //     </button>
-    //   </div>
-    // </div>
   );
 };
 
