@@ -315,7 +315,7 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ topics }) => {
 
   const settings = {
     dots: false,
-    infinite: false,
+    infinite: true,
     speed: 500,
     arrows: false,
     slidesToShow: 1,
