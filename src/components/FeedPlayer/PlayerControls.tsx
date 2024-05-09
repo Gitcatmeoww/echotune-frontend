@@ -18,11 +18,12 @@ import CircularProgress from '@mui/material/CircularProgress';
 import axios from 'axios';
 
 interface PlayerControlsProps {
-  currentSummary: string | null;
+  currSummary: string | null;
   imageUrl?: string;
   title?: string;
   onNextClick: () => void;
   onPreviousClick: () => void;
+  summaryGenerated: boolean;
 }
 
 interface AudioControlState {
@@ -36,11 +37,12 @@ interface AudioControlState {
 }
 
 const PlayerControls: React.FC<PlayerControlsProps> = ({
-  currentSummary,
+  currSummary,
   imageUrl,
   title,
   onNextClick,
   onPreviousClick,
+  summaryGenerated,
 }) => {
   const [audioControl, setAudioControl] = useState<AudioControlState>({
     audioUrl: null,
@@ -49,11 +51,12 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
     playedTime: 0,
     duration: 0,
     muted: false,
-    autoplay: true,
+    autoplay: false,
   });
 
-  const placeholderAudioUrl = `${process.env.PUBLIC_URL}/intro2.mp3`;
+  const placeholderAudioUrl = `${process.env.PUBLIC_URL}/intro.mp3`;
   const [isAudioLoading, setIsAudioLoading] = useState(false);
+  const [firstPlayClicked, setFirstPlayClicked] = useState(false); // New state to track the first play click
 
   const {
     audioUrl,
@@ -67,45 +70,71 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
 
   useEffect(() => {
     // Automatically load and play audio when currentSummary changes
-    const loadAndPlayAudio = async () => {
-      if (currentSummary && audioControl.autoplay && title) {
-        // Set loading state and start placeholder audio
-        setAudioControl((prev) => ({ ...prev, loading: true }));
+    const loadAudio = async () => {
+      if (audioRef.current && audioRef.current.src) {
+        URL.revokeObjectURL(audioRef.current.src);
+      }
+      // setAudioControl((prev) => ({ ...prev, loading: true }));
+
+      if (currSummary && title && summaryGenerated) {
         try {
-          audioRef.current.src = placeholderAudioUrl;
-          audioRef.current.loop = false;
-          await audioRef.current
-            .play()
-            .catch((e) => console.error('Error playing placeholder audio:', e));
+          // audioRef.current.src = placeholderAudioUrl;
+          // audioRef.current.loop = false;
+          // await audioRef.current
+          //   .play()
+          //   .catch((e) => console.error('Error playing placeholder audio:', e));
+          setAudioControl((prev) => ({ ...prev, loading: true })); // Set loading to true
 
           // Fetch and prepare main audio
           const response = await axios.post(
             'http://localhost:8000/api/generate_audio/',
-            { articleContent: currentSummary, articleTitle: title },
+            { articleContent: currSummary, articleTitle: title },
             { responseType: 'blob' },
           );
-          const url = URL.createObjectURL(response.data);
           console.log('here');
-
-          // Ensure audio element is not playing before switching source
+          const url = URL.createObjectURL(response.data);
 
           audioRef.current.pause();
           audioRef.current.src = url;
           audioRef.current.loop = false;
-          audioRef.current.load(); // Important to reload the audio element after source change
+          audioRef.current.preload = 'auto'; // Preload the entire audio file
+          audioRef.current.load(); //
 
+          setAudioControl((prev) => ({
+            ...prev,
+            audioUrl: url,
+            // isPlaying: false,
+            loading: false,
+            playedTime: 0,
+            duration: audioRef.current.duration,
+            // autoplay: prev.isPlaying,
+          }));
+
+          // if (autoplay) {
+          //   setAudioControl((prev) => ({
+          //     ...prev,
+          //     isPlaying: autoplay,
+          //   }));
+
+          //   await audioRef.current.play();
+          // }
+
+          // audioRef.current.load(); // Important to reload the audio element after source change
           // Attempt to play the loaded audio
           audioRef.current.onloadedmetadata = async () => {
             try {
-              await audioRef.current.play();
-              setAudioControl((prev) => ({
-                ...prev,
-                audioUrl: url,
-                isPlaying: true,
-                loading: false,
-                playedTime: 0,
-                duration: audioRef.current.duration,
-              }));
+              if (firstPlayClicked) {
+                // Play only if autoplay is true
+                await audioRef.current.play();
+                setAudioControl((prev) => ({
+                  ...prev,
+                  audioUrl: url,
+                  isPlaying: true,
+                  loading: false,
+                  playedTime: 0,
+                  duration: audioRef.current.duration,
+                }));
+              }
             } catch (error) {
               console.error('Error playing the main audio:', error);
               setAudioControl((prev) => ({ ...prev, loading: false }));
@@ -118,7 +147,7 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
       }
     };
 
-    loadAndPlayAudio();
+    loadAudio();
 
     return () => {
       if (audioRef.current) {
@@ -127,14 +156,7 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
         URL.revokeObjectURL(audioRef.current.src);
       }
     };
-  }, [currentSummary]);
-  // const [audioUrl, setAudioUrl] = useState<string | null>(null);
-  // const [isPlaying, setIsPlaying] = useState(false);
-  // const [loading, setLoading] = useState(false);
-  // const [playedTime, setPlayedTime] = useState(0);
-  // const [duration, setDuration] = useState(0);
-  // const [autoplay, setAutoplay] = useState(true);
-  // const [muted, setMuted] = useState(false);
+  }, [currSummary]);
 
   const audioRef = useRef(new Audio());
   const theme = useTheme();
@@ -146,8 +168,6 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
         ...prev,
         duration: audioRef.current.duration,
       }));
-
-      // setDuration(audio.duration);
     });
 
     audio.addEventListener('timeupdate', handleProgress);
@@ -159,7 +179,8 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
       audio.removeEventListener('ended', handleAudioEnded);
       URL.revokeObjectURL(audio.src);
     };
-  }, []);
+    // }, []);
+  }, [currSummary, firstPlayClicked]); // Include firstPlayClicked in the dependency array
 
   const handleMetadata = () => {
     setAudioControl((prev) => ({
@@ -272,9 +293,15 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
   //     setIsPlaying(!isPlaying);
   //   }
   // };
-
   const handlePlayClick = () => {
-    // Toggle play or pause
+    setFirstPlayClicked(true); // Set firstPlayClicked to true when play button is clicked
+    // setAudioControl((prev) => ({
+    //   ...prev,
+    //   isPlaying: !prev.isPlaying,
+    //   autoplay: true, // Enable autoplay after the first click
+    // }));
+    console.log('firstPlayClicked ', firstPlayClicked);
+    // if (firstPlayClicked) {
     if (audioRef.current.src) {
       if (audioRef.current.paused) {
         audioRef.current.play();
@@ -283,8 +310,44 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
         audioRef.current.pause();
         setAudioControl((prev) => ({ ...prev, isPlaying: false }));
       }
+      // }
     }
   };
+
+  // const handlePlayClick = () => {
+  //   if (audioRef.current.src) {
+  //     setAudioControl((prev) => {
+  //       const isPlaying = !prev.isPlaying;
+  //       if (isPlaying) {
+  //         audioRef.current.play();
+  //       } else {
+  //         audioRef.current.pause();
+  //       }
+  //       return {
+  //         ...prev,
+  //         isPlaying: true,
+  //         autoplay: true, // Set autoplay to true when the user clicks play
+  //       };
+  //     });
+  //   }
+  // };
+
+  // const handlePlayClick = () => {
+  //   console.log('play');
+  //   // setAudioControl((prev) => ({ ...prev, autoplay: true }));
+  //   audioControl.autoplay = true;
+  //   console.log(audioControl.autoplay);
+  //   // Toggle play or pause
+  //   if (audioRef.current.src) {
+  //     if (audioRef.current.paused) {
+  //       audioRef.current.play();
+  //       setAudioControl((prev) => ({ ...prev, isPlaying: true }));
+  //     } else {
+  //       audioRef.current.pause();
+  //       setAudioControl((prev) => ({ ...prev, isPlaying: false }));
+  //     }
+  //   }
+  // };
 
   // const handlePlayClick = useCallback(async () => {
   //   if (!audioControl.audioUrl && currentSummary) {
@@ -434,7 +497,6 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
           bgcolor: '#252A41',
         }}
       >
-        {/* Thumbnail on the left */}
         {imageUrl && (
           <img
             src={imageUrl}
@@ -487,7 +549,6 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
           </IconButton>
         </Box>
 
-        {/* Volume control on the right */}
         <IconButton
           aria-label="volume"
           onClick={handleVolumeClick}
